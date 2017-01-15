@@ -81,19 +81,40 @@ cipher_suites=[["TLS_RSA_WITH_NULL_SHA256","NULL-SHA256"],
  ["TLS_DH_anon_WITH_AES_128_GCM_SHA256","ADH-AES128-GCM-SHA256"],
  ["TLS_DH_anon_WITH_AES_256_GCM_SHA384","ADH-AES256-GCM-SHA384"]]
 
-for cipher in cipher_suites:
-    try:
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-        context.set_ciphers(cipher[1])
-        context.verify_mode = ssl.CERT_REQUIRED
-        context.check_hostname = True
-        context.load_default_certs()
+# for cipher in cipher_suites:
+#     try:
+#         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+#         context.set_ciphers(cipher[1])
+#         context.verify_mode = ssl.CERT_REQUIRED
+#         context.check_hostname = True
+#         context.load_default_certs()
+#
+#         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         ssl_sock = context.wrap_socket(s, server_hostname=hostname)
+#         ssl_sock.connect((hostname, 443))
+#         logger.info( "Tested server does support " + cipher[0])
+#
+#     except ssl.SSLError as err:
+#         if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
+#             logger.info( "Tested server does not support " + cipher[1])
+#
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ssl_sock = context.wrap_socket(s, server_hostname=hostname)
-        ssl_sock.connect((hostname, 443))
-        logger.info( "Tested server does support " + cipher[0])
+try:
+    cert=ssl.get_server_certificate((hostname,443))
+    print cert
+    print ssl.get_default_verify_paths()
+    # context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    # context.set_ciphers(cipher[1])
+    # context.verify_mode = ssl.CERT_REQUIRED
+    # context.check_hostname = True
+    # context.load_default_certs()
+    #
+    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # ssl_sock = context.wrap_socket(s, server_hostname=hostname)
+    # ssl_sock.connect((hostname, 443))
 
-    except ssl.SSLError as err:
-        if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
-            logger.info( "Tested server does not support " + cipher[1])
+
+
+except ssl.SSLError as err:
+    if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
+        logger.info( "Tested server does not support " + cipher[1])
