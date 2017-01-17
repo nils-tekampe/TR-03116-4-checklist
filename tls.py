@@ -1,13 +1,17 @@
 #!/usr/local/bin/python
 
 import socket, ssl
-import logging, logging.config
+import logging, logging.config, os, pem
+import subprocess
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+
 
 logger = logging.getLogger("TLS tester")
 logger.setLevel(logging.INFO)
 
 # create the logging file handler
-fh = logging.FileHandler("/tmp/xenim.log")
+fh = logging.FileHandler("/tmp/tls.log")
 sh = logging.StreamHandler()
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -100,9 +104,49 @@ cipher_suites=[["TLS_RSA_WITH_NULL_SHA256","NULL-SHA256"],
 #
 
 try:
-    cert=ssl.get_server_certificate((hostname,443))
-    print cert
-    print ssl.get_default_verify_paths()
+    # cert=ssl.get_server_certificate((hostname,443))
+
+    # pem=ssl.get_server_certificate((hostname,443))
+    # print pem.encode('ascii','ignore')
+    # cert = x509.load_pem_x509_certificate(pem.encode('ascii','ignore'), default_backend())
+    #
+    # print cert.serial_number
+    # print cert.subject
+    # print cert.issuer
+    # print cert.signature_hash_algorithm
+    # print cert.signature_algorithm_oid
+    # print cert.public_key()
+    # print cert.extensions#
+    # print cert.get
+
+    openssl_cmd_getcert="echo 'Q' | openssl s_client -connect www.google.de:443 -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
+
+    proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+
+
+    certs = pem.parse(out)
+
+    for cert in certs:
+        print cert
+
+    # process = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+    # stdout = process.communicate()[0]
+    # print 'STDOUT:{}'.format(stdout)
+    #
+    # while True:
+    #     output = process.stdout.readline()
+    #     if output == '' and process.poll() is not None:
+    #         break
+    #     if output:
+    #         print output.strip()
+    # rc = process.poll()
+
+    #wenn das nicht funktioniert, dann geht immer nohc
+# openssl s_client -connect www.google.de:443 -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
+
+    # print cert
+    # print ssl.get_default_verify_paths()
     # context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
     # context.set_ciphers(cipher[1])
     # context.verify_mode = ssl.CERT_REQUIRED
@@ -115,6 +159,8 @@ try:
 
 
 
-except ssl.SSLError as err:
-    if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
-        logger.info( "Tested server does not support " + cipher[1])
+
+except Exception as err:
+    print err
+    # if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
+    #     logger.info( "Tested server does not support " + cipher[1])
