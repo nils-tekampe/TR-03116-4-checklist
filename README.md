@@ -13,6 +13,6 @@ Es werden nicht alle Aspekte der Checkliste vollständig und automatisch geprüf
 * Python 2.7
 * Installierte Python Pakete (pip install ...)
   * TLS
-  * tbd 
-- openssl binary (muss im Pfad liegen)
+  * tbd
+* openssl binary (muss im Pfad liegen)
 -
