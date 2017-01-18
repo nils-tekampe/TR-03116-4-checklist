@@ -94,27 +94,36 @@ for cipher in cipher_suites:
 
 
 
+# Todo: 2.4.1 Die verwendeten ephemeren Parameter waￌﾈhrend des TLS-Handshakes bieten ausreichende Sicherheit:
 
+logger.info("------------------------------------------------------------------------------------")
+logger.info("Anforderung 2.5.1 Überpruefe Session Renegotiation")
+logger.info("------------------------------------------------------------------------------------")
 
+openssl_cmd_getcert=" echo "R" | openssl s_client -connect "+ hostname +":443"
+proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+(out, err) = proc.communicate()
+print out
 
+if "Secure Renegotiation IS supported" in out:
+    logger.error("Server supports secure renegotiation based on an extension. This shold not be the case")
+else:
+    logger.info("Server does not support secure renegotiation based on an extension. This is the expected behavior")
 
-
+lines=out.split('\n')
+if "handshake failure" in lines[-1]:
+    logger.info("Server does not support insecure renegotiation. This is the expected behavior")
+else:
+    logger.error("Server supports insecure renegotiation. This shold not be the case")
 
 
 
 
 try:
-    # cert=ssl.get_server_certificate((hostname,443))
-
-    # pem=ssl.get_server_certificate((hostname,443))
-    # print pem.encode('ascii','ignore')
-
 
     openssl_cmd_getcert="echo 'Q' | openssl s_client -connect www.google.de:443 -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
-
     proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
-
 
     certs = pem.parse(out)
 
