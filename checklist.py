@@ -132,6 +132,7 @@ if "Secure Renegotiation IS supported" in out:
     logger.error("Server supports secure renegotiation based on an extension. This shold not be the case")
 else:
     logger.info("Server does not support secure renegotiation based on an extension. This is the expected behavior")
+    logger.info("Now checking whehter classical renegotiation works")
 
 lines=out.split('\n')
 if "handshake failure" in lines[-1]:
@@ -139,9 +140,34 @@ if "handshake failure" in lines[-1]:
 else:
     logger.error("Server supports insecure renegotiation. This shold not be the case")
 
+logger.info("------------------------------------------------------------------------------------")
+logger.info("Anforderung 2.5.2 Überpruefe TLS Kompression")
+logger.info("------------------------------------------------------------------------------------")
+# Die Ausgabe von openssl aus Anforderung 2.5.1 enthält auch Informationen zur Komprimierung
+
+if "Compression: NONE" in out:
+    logger.info("Server does not support compression. This is the expected behavior")
+else:
+    logger.error("Server supports compression. This shold not be the case")
+
+logger.info("------------------------------------------------------------------------------------")
+logger.info("Anforderung 2.5.3 Überpruefe auf Heartbeat-Extension")
+logger.info("------------------------------------------------------------------------------------")
+#Thanks to  https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html
+
+openssl_cmd_getcert=" echo Q | openssl s_client -connect "+ hostname +":443 -tlsextdebug"
+proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+(out, err) = proc.communicate()
+print out
+
+if "heartbeat" in out:
+    logger.error("Server supports the heartbeat extension. This shold not be the case")
+else:
+    logger.info("Server does not support the heartbeat extension. This is the intended behavior")
 
 
 
+# --------------
 try:
 
     openssl_cmd_getcert="echo 'Q' | openssl s_client -connect www.google.de:443 -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
