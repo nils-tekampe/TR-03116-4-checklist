@@ -12,7 +12,7 @@ Es werden nicht alle Aspekte der Checkliste vollständig und automatisch geprüf
 ## Systemvoraussetungen
 - Python 2.7
 - Installierte Python Pakete (pip install ...)
-  - TLS
-  - 
+..- TLS
+..- 
 - openssl binary (muss im Pfad liegen)
 -
