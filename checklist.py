@@ -80,12 +80,11 @@ for protocol in protocols:
                 logger.error("Tested server does not support " + protocol[1] + " This should not be the case")
 
 logger.info("------------------------------------------------------------------------------------")
-logger.info("Anforderung 2.3.2/2.3.3 Überpreufe die unterstuetzten Cipher-Suites:")
+logger.info("Anforderung 2.3.2/2.3.3/2.3.4 Überpreufe die unterstuetzten Cipher-Suites:")
 logger.info("------------------------------------------------------------------------------------")
 logger.info("Im Folgenden werden die vom Server unterstützten Cipher-Suites gelistet.")
 logger.info("Diese müssen mit den Vorgaben der Checkliste abgeglichen werden.")
 logger.info("Unerlaubte Cipher-Suites werden direkt markiert")
-
 
 for cipher in cipher_suites:
     try:
@@ -165,8 +164,16 @@ if "heartbeat" in out:
 else:
     logger.info("Server does not support the heartbeat extension. This is the intended behavior")
 
+logger.info("------------------------------------------------------------------------------------")
+logger.info("Anforderung 2.5.4 Überpruefe auf truncated_hmac-Extension")
+logger.info("------------------------------------------------------------------------------------")
+# Die Ausgabe von openssl aus Anforderung 2.5.3 enthält auch Informationen zu diese Extension
 
-
+#fixme: wir brauchen mal einen Server mit einer truncated_hmac extension um zu sehen, ob das hier funktioniert.
+if "truncated_hmac" in out:
+    logger.error("Server supports the truncated_hmac extension. This shold not be the case")
+else:
+    logger.info("Server does not support the truncated_hmac extension. This is the intended behavior")
 # --------------
 try:
 
