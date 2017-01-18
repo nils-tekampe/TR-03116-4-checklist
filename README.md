@@ -7,3 +7,12 @@ Es werden nicht alle Aspekte der Checkliste vollständig und automatisch geprüf
 | Anforderung | Beschreibung                                     | Prüfung umgesetzt? | Hinweis                                                                                                                                                                                   |
 |:------------|:-------------------------------------------------|:-------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 2.3.1       | Es werden nur erlaubte TLS-Versionen unterstützt | Ja                 | Die Prüfung erfolgt durch eine Reihe von Verbindungsversuchen mit unterschiedlichen TLS-Versionen. Es wird die TLS-Library von python verwendet, die im Regelfall auf openssl zurückfällt |
+
+
+## Systemvoraussetungen
+- Python 2.7
+- Installierte Python Pakete (pip install ...)
+  - TLS
+  - 
+- openssl binary (muss im Pfad liegen)
+-
