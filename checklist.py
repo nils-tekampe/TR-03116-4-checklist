@@ -7,24 +7,18 @@ import subprocess
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from tls_includes import cipher_suites
+import colorlog
 
 
-logger = logging.getLogger("TLS tester")
+logger = colorlog.getLogger("TLS tester")
 logger.setLevel(logging.INFO)
-
-# create the logging file handler
-fh = logging.FileHandler("/tmp/tls.log")
-sh = logging.StreamHandler()
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-
-# add handler to logger object
-logger.addHandler(fh)
+sh = colorlog.StreamHandler()
+formatter = sh.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(levelname)s:%(name)s:%(message)s'))
 logger.addHandler(sh)
 
-hostname='www.de-mail.t-online.de'
 
+hostname='www.de-mail.t-online.de'
+port=443
 
 # Helper function to check for the availability of streamripper.
 # Thanks to http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
@@ -48,6 +42,7 @@ if which('openssl')==None:
     logger.error('Could not find openssl in the path. Please install openssl and add it to the path. The call this script again. Will exit now.')
     exit (1)
 
+logger.warning("tttt")
 #Testing available protocols
 protocols=[
 [ssl.PROTOCOL_TLSv1, "TLSv1", False],
@@ -66,7 +61,7 @@ for protocol in protocols:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ssl_sock = context.wrap_socket(s, server_hostname=hostname)
 
-        ssl_sock.connect((hostname, 443))
+        ssl_sock.connect((hostname, port))
         if protocol[2]:
             logger.info("Tested server does support " + protocol[1] + " This is the expected behavior")
         else:
@@ -96,13 +91,13 @@ for cipher in cipher_suites:
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ssl_sock = context.wrap_socket(s, server_hostname=hostname)
-        ssl_sock.connect((hostname, 443))
+        ssl_sock.connect((hostname, port))
         priority= ssl_sock.cipher()[2]
         print "hier"
         print ssl_sock.cipher()
 
         if cipher[2]:
-            logger.info("Tested server does support " + cipher[0] + " with priority " + str(priority) + ". Please check with checklist whether this is appropiate for the current system.")
+            logger.info(cipher[0] + " supported with priority " + str(priority) + ". Please check with checklist whether this is appropiate for the current system.")
         else:
             logger.error("Tested server does support unallowed " + cipher[0] + " with priority " + str(priority) +  " This should not be the case")
 
@@ -111,18 +106,16 @@ for cipher in cipher_suites:
     except ssl.SSLError as err:
         if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
                 if not cipher[2]:
-                    logger.info("Tested server does not support " + cipher[0] + " Please check with checklist")
+                    logger.info(cipher[0] + " not supported. Please check with checklist")
 
 
-
-
-# Todo: 2.4.1 Die verwendeten ephemeren Parameter waￌﾈhrend des TLS-Handshakes bieten ausreichende Sicherheit:
+# TODO 2.4.1 Die verwendeten ephemeren Parameter waￌﾈhrend des TLS-Handshakes bieten ausreichende Sicherheit:
 
 logger.info("------------------------------------------------------------------------------------")
 logger.info("Anforderung 2.5.1 Überpruefe Session Renegotiation")
 logger.info("------------------------------------------------------------------------------------")
 
-openssl_cmd_getcert=" echo "R" | openssl s_client -connect "+ hostname +":443"
+openssl_cmd_getcert=" echo "R" | openssl s_client -connect "+ hostname +":"+port
 proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
 (out, err) = proc.communicate()
 print out
@@ -154,7 +147,7 @@ logger.info("Anforderung 2.5.3 Überpruefe auf Heartbeat-Extension")
 logger.info("------------------------------------------------------------------------------------")
 #Thanks to  https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html
 
-openssl_cmd_getcert=" echo Q | openssl s_client -connect "+ hostname +":443 -tlsextdebug"
+openssl_cmd_getcert=" echo Q | openssl s_client -connect "+ hostname +":"+port+" -tlsextdebug"
 proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
 (out, err) = proc.communicate()
 print out
@@ -177,7 +170,7 @@ else:
 # --------------
 try:
 
-    openssl_cmd_getcert="echo 'Q' | openssl s_client -connect www.google.de:443 -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
+    openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+port+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
     proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
 
