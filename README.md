@@ -23,14 +23,13 @@ Es werden nicht alle Aspekte der Checkliste vollständig und automatisch geprüf
 | 2.6.5       | Das Server-Zertifikat ist ein Extended-Validation-Zertifikat (EMPFOHLEN).                                                                          | Nein                    | Kriterium ist optional, aktuell nicht umgesetzt                                                                                                                                                                                                                                                                                                 |
 
 
-
-
 ## Systemvoraussetungen
 * Python 2.7
 * Installierte Python Pakete (pip install ...)
   * TLS
-  * tbd
+  * colorlog
 * openssl binary (muss im Pfad liegen)
+* SSLyze (muss im Pfad liegen)
 
 ##Disclaimmer
 Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.
