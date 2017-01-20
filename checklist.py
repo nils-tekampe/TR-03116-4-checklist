@@ -10,10 +10,11 @@ from tls_includes import cipher_suites
 import colorlog
 
 
-logger = colorlog.getLogger("TLS tester")
+logger = colorlog.getLogger("checklist.py")
 logger.setLevel(logging.INFO)
 sh = colorlog.StreamHandler()
-formatter = sh.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(levelname)s:%(name)s:%(message)s'))
+# formatter = sh.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(levelname)s:%(name)s:%(message)s'))
+formatter = sh.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(name)s:%(message)s'))
 logger.addHandler(sh)
 
 
@@ -42,7 +43,7 @@ if which('openssl')==None:
     logger.error('Could not find openssl in the path. Please install openssl and add it to the path. The call this script again. Will exit now.')
     exit (1)
 
-logger.warning("tttt")
+
 #Testing available protocols
 protocols=[
 [ssl.PROTOCOL_TLSv1, "TLSv1", False],
@@ -93,11 +94,9 @@ for cipher in cipher_suites:
         ssl_sock = context.wrap_socket(s, server_hostname=hostname)
         ssl_sock.connect((hostname, port))
         priority= ssl_sock.cipher()[2]
-        print "hier"
-        print ssl_sock.cipher()
 
         if cipher[2]:
-            logger.info(cipher[0] + " supported with priority " + str(priority) + ". Please check with checklist whether this is appropiate for the current system.")
+            logger.warning(cipher[0] + " supported with priority " + str(priority) + ". Please check with checklist whether this is appropiate for the current system.")
         else:
             logger.error("Tested server does support unallowed " + cipher[0] + " with priority " + str(priority) +  " This should not be the case")
 
@@ -106,7 +105,7 @@ for cipher in cipher_suites:
     except ssl.SSLError as err:
         if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
                 if not cipher[2]:
-                    logger.info(cipher[0] + " not supported. Please check with checklist")
+                    logger.warning(cipher[0] + " not supported. Please check with checklist")
 
 
 # TODO 2.4.1 Die verwendeten ephemeren Parameter waￌﾈhrend des TLS-Handshakes bieten ausreichende Sicherheit:
@@ -115,10 +114,9 @@ logger.info("-------------------------------------------------------------------
 logger.info("Anforderung 2.5.1 Überpruefe Session Renegotiation")
 logger.info("------------------------------------------------------------------------------------")
 
-openssl_cmd_getcert=" echo "R" | openssl s_client -connect "+ hostname +":"+port
-proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+openssl_cmd_getcert=" echo "R" | openssl s_client -connect "+ hostname +":"+str(port)
+proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 (out, err) = proc.communicate()
-print out
 
 if "Secure Renegotiation IS supported" in out:
     logger.error("Server supports secure renegotiation based on an extension. This shold not be the case")
@@ -147,10 +145,9 @@ logger.info("Anforderung 2.5.3 Überpruefe auf Heartbeat-Extension")
 logger.info("------------------------------------------------------------------------------------")
 #Thanks to  https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html
 
-openssl_cmd_getcert=" echo Q | openssl s_client -connect "+ hostname +":"+port+" -tlsextdebug"
-proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+openssl_cmd_getcert=" echo Q | openssl s_client -connect "+ hostname +":"+str(port)+" -tlsextdebug"
+proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 (out, err) = proc.communicate()
-print out
 
 if "heartbeat" in out:
     logger.error("Server supports the heartbeat extension. This shold not be the case")
@@ -162,29 +159,68 @@ logger.info("Anforderung 2.5.4 Überpruefe auf truncated_hmac-Extension")
 logger.info("------------------------------------------------------------------------------------")
 # Die Ausgabe von openssl aus Anforderung 2.5.3 enthält auch Informationen zu diese Extension
 
-#fixme: wir brauchen mal einen Server mit einer truncated_hmac extension um zu sehen, ob das hier funktioniert.
+#TODO: wir brauchen mal einen Server mit einer truncated_hmac extension um zu sehen, ob das hier funktioniert.
 if "truncated_hmac" in out:
     logger.error("Server supports the truncated_hmac extension. This shold not be the case")
 else:
     logger.info("Server does not support the truncated_hmac extension. This is the intended behavior")
 # --------------
+logger.info("------------------------------------------------------------------------------------")
+logger.info("We will no obtain the certificates for the later test cases")
+logger.info("------------------------------------------------------------------------------------")
 try:
 
-    openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+port+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
-    proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, shell=True)
+    openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+str(port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
+    proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
 
     certs = pem.parse(out)
 
+    logger.info(str(len(certs)) +" Certificates have been obtained.")
+
     for entry in certs:
         cert = x509.load_pem_x509_certificate(str(entry).encode('ascii','ignore'), default_backend())
-        print cert.serial_number
-        print cert.subject
-        print cert.issuer
-        print cert.signature_hash_algorithm
-        print cert.signature_algorithm_oid
-        print cert.public_key()
-        print cert.extensions
+        logger.info("Now checking certificate with serial: "+str(cert.serial_number))
+        logger.info("Here come the attributes of the subject of the certificate:")
+        for attribute in cert.subject:
+            logger.info(attribute)
+
+        logger.info("The signature algorithm of the certificate is: "+str(cert.signature_algorithm_oid))
+
+        if type(cert.public_key()=="cryptography.hazmat.backends.openssl.rsa._RSAPublicKey"):
+            logger.info("This certificate has an RSA key")
+            # logger.info.("The key size is: "+str(cert.public_key().key_size)
+        if type(cert.public_key()=="cryptography.hazmat.primitives.asymmetric.dsa.DSAPublicKey"):
+            logger.error("This certificate has an DSA key. This should not be the case")
+        if type(cert.public_key()=="cryptography.hazmat.primitives.asymmetric.ec.EllipticCurvePublicKey"):
+            logger.info("This certificate has an EllipticCurvePublicKey key")
+
+
+        logger.info("The certificate contains the following extensions:")
+        for extension in cert.extensions:
+            logger.info(extension.oid)
+
+        keyUsage=cert.extensions.get_extension_for_class(x509.KeyUsage)
+        # print keyUsage
+        # print type(keyUsage)
+        logger.warning("The keyUsage extension contains:")
+        logger.warning("digital_signature:"+str(keyUsage.value.digital_signature))
+        logger.warning("key_cert_sign:"+str(keyUsage.value.key_cert_sign))
+        logger.warning("crl_sign:"+str(keyUsage.value.crl_sign))
+
+        extendedKeyUsage=cert.extensions.get_extension_for_class(x509.ExtendedKeyUsage)
+        logger.warning("The extendedKeyUsage extension contains:")
+        logger.warning(extendedKeyUsage)
+
+        # print cert.serial_number
+        # print cert.subject
+        # print cert.issuer
+        # print cert.signature_hash_algorithm
+        # print cert.signature_algorithm_oid
+        # print cert.public_key()
+        # print cert.extensions
+
+
 
 
 except Exception as err:
