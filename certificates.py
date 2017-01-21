@@ -5,7 +5,7 @@ import logging, logging.config, os, pem
 import subprocess
 from cryptography  import x509
 from cryptography.hazmat.backends import default_backend
-from tls_includes import cipher_suites
+# from tls_includes import cipher_suites
 import colorlog
 from helper import which, logger
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
