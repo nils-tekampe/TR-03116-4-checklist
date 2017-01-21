@@ -29,14 +29,7 @@ def main():
     # TODO 2.4.1 Die verwendeten ephemeren Parameter waￌﾈhrend des TLS-Handshakes bieten ausreichende Sicherheit:
 
     certs=read_certificates(hostname,port)
-    # check_certificate_key(certs[0])
-    # check_signature_algorithm(certs[0])
-    # check_for_wildcards(certs[0])
-    # check_cert_for_crl(certs[0])
-    # check_cert_for_aia(certs[0])
-    # check_cert_for_revocation(certs[0])
-    # check_cert_for_keyusage(certs[0])
-    check_cert_for_extended_keyusage(certs[0])
+    check_leaf_certificate(certs[0])
 
 if __name__ == "__main__":
     main()

@@ -30,6 +30,7 @@ Es werden nicht alle Aspekte der Checkliste vollständig und automatisch geprüf
   * colorlog
 * openssl binary (muss im Pfad liegen)
 * SSLyze (muss im Pfad liegen)
+* Unter OSX sollte https://github.com/raggi/openssl-osx-ca installiert sein 
 
 ##Disclaimmer
 Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.

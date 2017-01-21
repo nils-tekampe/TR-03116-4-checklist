@@ -20,6 +20,37 @@ import cryptography.x509
 from cryptography.x509.oid import ExtensionOID
 
 
+def check_leaf_certificate(cert):
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Diese Funktion überprüft das Server-Zertifikat und deckt die Anforderungen aus Kapitel 2.1 der Checkliste ab.")
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Drucke das subject des Zertifikats. Dies dient nur der Übersicht")
+    print_subject(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe den öffentlichen Schlüssel des Zertifkats (Anforderung 2.1.1)")
+    check_certificate_key(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe den Signaturalgorithmus (Anforderung 2.1.2)")
+    check_signature_algorithm(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe auf Wildcards (Anforderung 2.1.3)")
+    check_for_wildcards(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe Rückrufinformationen und AuthorityInfoAccess (Anforderung 2.1.4)")
+    check_cert_for_crl(cert)
+    check_cert_for_aia(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe ob das Zertifikat gesperrt ist (Anforderung 2.1.5)")
+    check_cert_for_revocation(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe keyUsageExtension (Anforderung 2.1.6)")
+    check_cert_for_keyusage(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe extendedKeyUsageExtension (Anforderung 2.1.7)")
+    check_cert_for_extended_keyusage(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe Sub-Domain Namen (Anforderung 2.1.7)")
+    list_alternative_names(cert)
 
 def read_certificates(hostname,port):
     # --------------
@@ -69,12 +100,22 @@ def check_signature_algorithm(cert):
 
 
 def check_for_wildcards(cert):
-    print cert.subject._attributes
+    for entry in cert.subject._attributes:
+        for attr in entry:
+            if attr.oid._name=="commonName":
+                logger.warning("commonName in subject of certificate has value: " + attr.value)
 
-    print type(cert.subject._attributes[1])
+    try:
+        name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+        logger.info("The certificate has an AlternateiveName Extension")
+        logger.warning("The value of the AlternativeName Extension is: "+str(name_extension))
 
-    #TODO: Muss noch fertiggestellt werden
-    #TODO: auch die Extension fpr Alternative Names checken
+        #TODO: Die Extension könnte man noch nett auswerten.
+
+
+    except Exception as err:
+        print err
+        #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
 
 
 def check_cert_for_crl(cert):
@@ -125,7 +166,8 @@ def check_cert_for_extended_keyusage(cert):
         logger.info("The certificate has a ExtendedKeyUsage Extension with the following settings")
         # logger.warning("serverAuth: "+ str(keyusage_extension.value.SERVER_AUTH))
 
-        print dict(keyusage_extension)
+        for usg in keyusage_extension.value._usages:
+            logger.warning("The certificate has an extended key usage extension with value: "+usg._name)
 
 
         #TODO: Ist das der richtige Wert?
@@ -133,7 +175,26 @@ def check_cert_for_extended_keyusage(cert):
         print err
         #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
 
+def list_alternative_names(cert):
 
+    try:
+        name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+        logger.info("The certificate has an AlternateiveName Extension")
+        logger.warning("The value of the AlternativeName Extension is: "+str(name_extension))
+
+        #TODO: Die Extension könnte man noch nett auswerten.
+
+
+    except Exception as err:
+        print err
+        #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
+
+
+
+def print_subject(cert):
+    for entry in cert.subject._attributes:
+        for attr in entry:
+            logger.info( attr.oid._name+ ": " + attr.value)
         # for entry in certs:
         #     cert = x509.load_pem_x509_certificate(str(entry).encode('ascii','ignore'), default_backend())
         #     logger.info("Now checking certificate with serial: "+str(cert.serial_number))

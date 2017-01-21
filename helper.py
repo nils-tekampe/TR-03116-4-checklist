@@ -1,6 +1,5 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
-
 import os, logging, colorlog
 
 # Helper function to check for the availability of streamripper.
