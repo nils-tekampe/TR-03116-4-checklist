@@ -76,6 +76,8 @@ def check_leaf_certificate(cert):
     logger.info("Überprüfe Sub-Domain Namen (Anforderung 2.1.7)")
     list_alternative_names(cert)
 
+    logger.info(is_cert_ca(cert))
+
 def read_certificates(hostname,port):
     try:
 
@@ -121,6 +123,7 @@ def check_signature_algorithm(cert):
 
 
 def check_for_wildcards(cert):
+    #TODO: Das ist in CA Zertifkaten anders. Und es müssen auch noch mehr Felder geprüft werden.
     for entry in cert.subject._attributes:
         for attr in entry:
             if attr.oid._name=="commonName":
@@ -223,15 +226,24 @@ def check_basic_constraint(cert):
     try:
         basic_constraint_extension=cert.extensions.get_extension_for_class(x509.BasicConstraints)
         logger.info("Das Zertifikat hat eine BasicContraint Extension")
-        logger.warning("Der Inhalt der AlternativeName Extension ist: "+str(basic_constraint_extension))
+        logger.warning("Der Inhalt der BasicContraint Extension ist: "+str(basic_constraint_extension))
 
         #TODO: Die Extension könnte man noch nett auswerten.
 
+    except Exception as err:
+        logger.error("Das Zertifikat hat keine BasicContraint Extension")
+
+
+def is_cert_ca(cert):
+    try:
+        basic_constraint_extension=cert.extensions.get_extension_for_class(x509.BasicConstraints)
+        logger.info("Das Zertifikat hat eine BasicContraint Extension")
+        logger.warning("Der Inhalt der BasicContraint Extension ist: "+str(basic_constraint_extension))
+
+
 
     except Exception as err:
-        print err
-        #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
-
+        return False
 
 
 def print_subject(cert):
