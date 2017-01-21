@@ -19,6 +19,29 @@ import cryptography.x509
 from cryptography.x509.oid import ExtensionOID
 import re
 
+# def check_intermediate_certificate(cert):
+
+def check_root_certificate(cert):
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Diese Funktion überprüft das CA-Zertifikat und deckt die Anforderungen aus Kapitel 2.2 der Checkliste ab.")
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Drucke das subject des Zertifikats. Dies dient nur der Übersicht")
+    print_subject(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe den öffentlichen Schlüssel des Zertifkats (Anforderung 2.2.1)")
+    check_certificate_key(cert)
+
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe auf Wildcards (Anforderung 2.2.3)")
+    check_for_wildcards(cert)
+
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe auf BasicConstraint Extension (Anforderung 2.2.5)")
+    check_basic_constraint(cert)
+
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe keyUsageExtension (Anforderung 2.2.6)")
+    check_cert_for_keyusage(cert)
 
 
 def check_leaf_certificate(cert):
@@ -113,7 +136,7 @@ def check_for_wildcards(cert):
             logger.error("Die AlternativeName-Extension enthält keine Wildcards. Das ist  OK")
 
     except Exception as err:
-        print err
+        logger.error("Es existiert keine AlternativeName-Extension")
         #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
 
 
@@ -160,7 +183,7 @@ def check_cert_for_keyusage(cert):
         logger.warning("key_cert_sign: "+ str(keyusage_extension.value.key_cert_sign))
         logger.warning("crl_sign: "+ str(keyusage_extension.value.crl_sign))
 
-        #TODO: Man könnte die Werte auch gleich prüfen.
+        #TODO: Man könnte die Werte auch gleich prüfen, allerdings ist das für CA Zertifkate anders .
 
     except Exception as err:
         print err
@@ -187,6 +210,20 @@ def list_alternative_names(cert):
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
         logger.info("Das Zertifikat hat eine AlternateiveName Extension")
         logger.warning("Der Inhalt der AlternativeName Extension ist: "+str(name_extension))
+
+        #TODO: Die Extension könnte man noch nett auswerten.
+
+
+    except Exception as err:
+        print err
+        #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
+
+def check_basic_constraint(cert):
+#Anforderung 2.2.5
+    try:
+        basic_constraint_extension=cert.extensions.get_extension_for_class(x509.BasicConstraints)
+        logger.info("Das Zertifikat hat eine BasicContraint Extension")
+        logger.warning("Der Inhalt der AlternativeName Extension ist: "+str(basic_constraint_extension))
 
         #TODO: Die Extension könnte man noch nett auswerten.
 

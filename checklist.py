@@ -16,8 +16,13 @@ def main():
         exit (1)
 
     test_server_for_protocol(hostname,port)
+
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("We will now obtain the certificates for the later test cases")
+    logger.info("------------------------------------------------------------------------------------")
     certs=read_certificates(hostname,port)
-    check_leaf_certificate(certs[0])
+    # check_leaf_certificate(certs[0])
+    check_root_certificate(certs[-1])
 
 if __name__ == "__main__":
     main()
