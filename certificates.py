@@ -17,6 +17,8 @@ from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurve
 import cryptography.x509
 from cryptography.x509.oid import ExtensionOID
+import re
+
 
 
 def check_leaf_certificate(cert):
@@ -52,10 +54,6 @@ def check_leaf_certificate(cert):
     list_alternative_names(cert)
 
 def read_certificates(hostname,port):
-    # --------------
-    logger.info("------------------------------------------------------------------------------------")
-    logger.info("We will now obtain the certificates for the later test cases")
-    logger.info("------------------------------------------------------------------------------------")
     try:
 
         openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+str(port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
@@ -63,7 +61,7 @@ def read_certificates(hostname,port):
         (out, err) = proc.communicate()
 
         certs = pem.parse(out)
-        logger.info(str(len(certs)) +" Certificates have been obtained.")
+        logger.info(str(len(certs)) +" Zertifikate wurden empfangen.")
 
         x509_certs = [load_pem_x509_certificate(str(x).encode('ascii','ignore'),default_backend()) for x in certs]
 
@@ -78,39 +76,41 @@ def check_certificate_key(cert):
     if (type(cert.public_key()) is _RSAPublicKey):
         logger.info("This certificate has an RSA key")
         if cert.public_key().key_size >= 2048:
-            logger.info("The key size is equal to or greater than 2048.")
+            logger.info("Die Groesse des Schluessels ist gleich oder groesser 2048. Das ist OK.")
         else:
-            logger.error("The key size is smaller than 2048. This should not be the case")
+            logger.error("Die Groesse des Schluessels ist kleiner 2048bit. Das sollte nicht der Fall sein.")
 
         # logger.info.("The key size is: "+str(cert.public_key().key_size))
     if (type(cert.public_key())==DSAPublicKey):
-        logger.error("This certificate has an DSA key. This should not be the case")
+        logger.error("Das Zertifikat hat einen DSA key. Das sollte nicht der Fall sein. Das Skript wird hier beendet da die weiteren Tests nicht sinnvoll sind.")
+        exit(1)
         #TODO: Der Fall muss noch getestet werden. Die genaue Bezeichnung des Types des public_key ist vermutlich anders
     if (type(cert.public_key())==EllipticCurvePublicKey):
-        logger.info("This certificate has an EllipticCurvePublicKey key")
-        print cert.public_key().curve.name
+        logger.info("Das Zertifikat hat einen EllipticCurvePublicKey")
+        logger.warning("Es wird folgende Kurfe verwendet:"+ str(cert.public_key().curve.name)+ " Bitte mit der Checkliste abgleichen")
         #TODO: Checken, dass der name der Kurve denen in der Checkliste entspricht
         #TODO: Der Fall muss noch getestet werden. Die genaue Bezeichnung des Types des public_key ist vermutlich anders
 
 def check_signature_algorithm(cert):
-    logger.warning("The signature algorithm of the certificate is: "+str(cert.signature_algorithm_oid._name))
-    logger.warning("The corresponding OID is: "+str(cert.signature_algorithm_oid.dotted_string))
-    logger.warning("Please check with the checklist")
+    logger.warning("Der verwendete Signaturalgorithmus ist : "+str(cert.signature_algorithm_oid._name))
+    logger.warning("Die zugehörige OID lautet: "+str(cert.signature_algorithm_oid.dotted_string))
+    logger.warning("Bitte mit Hilfe der Checkliste überprüfen")
 
 
 def check_for_wildcards(cert):
     for entry in cert.subject._attributes:
         for attr in entry:
             if attr.oid._name=="commonName":
-                logger.warning("commonName in subject of certificate has value: " + attr.value)
-
+                logger.info("commonName im subject des Zertifikat hat den Wert: " + attr.value)
     try:
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
-        logger.info("The certificate has an AlternateiveName Extension")
-        logger.warning("The value of the AlternativeName Extension is: "+str(name_extension))
+        logger.info("Das Zertifikat hat eine AlternativeName Extension")
+        logger.info("Der Inhalt der AlternativeName Extension lautet: "+str(name_extension))
 
-        #TODO: Die Extension könnte man noch nett auswerten.
-
+        if re.search(r"\*+",str(name_extension))==None:
+            logger.error("Die AlternativeName-Extension enthält mindestens ein *. Das ist nicht OK")
+        else:
+            logger.error("Die AlternativeName-Extension enthält keine Wildcards. Das ist  OK")
 
     except Exception as err:
         print err
@@ -120,7 +120,10 @@ def check_for_wildcards(cert):
 def check_cert_for_crl(cert):
     try:
         crl_extension=cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
-        logger.info("The certificate has a CRLDistributionPoint Extension")
+        logger.info("Das Zertifikat hat eine CRLDistributionPoint Extension")
+        logger.info("Der Inhalt der CRLDistributionPoint Extension lautet:")
+        logger.info(str(crl_extension))
+        #TODO: Die Ausgabe der Extension könnte etwas schöner werden
 
     except Exception as err:
         print err
@@ -128,8 +131,11 @@ def check_cert_for_crl(cert):
 
 def check_cert_for_aia(cert):
     try:
-        crl_extension=cert.extensions.get_extension_for_class(x509.AuthorityInformationAccess)
-        logger.info("The certificate has a AuthorityInformationAccess Extension")
+        aia_extension=cert.extensions.get_extension_for_class(x509.AuthorityInformationAccess)
+        logger.info("Das Zertifikat hat eine AuthorityInformationAccess Extension")
+        logger.info("Der Inhalt der AuthorityInformationAccess Extension lautet:")
+        logger.info(str(aia_extension))
+        #TODO: Die Ausgabe der Extension könnte etwas schöner werden
 
     except Exception as err:
         print err
@@ -138,7 +144,8 @@ def check_cert_for_aia(cert):
 def check_cert_for_revocation(cert):
     try:
         crl_extension=cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
-        logger.info("The certificate has a CRLDistributionPoint Extension")
+        logger.info("Das Zertifikat hat eine CRLDistributionPoint Extension")
+
 #TODO: CRL auswerten
 
     except Exception as err:
@@ -148,7 +155,7 @@ def check_cert_for_revocation(cert):
 def check_cert_for_keyusage(cert):
     try:
         keyusage_extension=cert.extensions.get_extension_for_class(x509.KeyUsage)
-        logger.info("The certificate has a KeyUsage Extension with the following settings")
+        logger.info("Das Zertifikat hat eine KeyUsage Extension mit den folgenden Eigenschaften")
         logger.warning("digital_signature: "+ str(keyusage_extension.value.digital_signature))
         logger.warning("key_cert_sign: "+ str(keyusage_extension.value.key_cert_sign))
         logger.warning("crl_sign: "+ str(keyusage_extension.value.crl_sign))
@@ -162,11 +169,11 @@ def check_cert_for_keyusage(cert):
 def check_cert_for_extended_keyusage(cert):
     try:
         keyusage_extension=cert.extensions.get_extension_for_class(x509.ExtendedKeyUsage)
-        logger.info("The certificate has a ExtendedKeyUsage Extension with the following settings")
+        # logger.info("Das Zertifikat hat eine ExtendedKeyUsage Extension mit den folgenden Eigenschaften")
         # logger.warning("serverAuth: "+ str(keyusage_extension.value.SERVER_AUTH))
 
         for usg in keyusage_extension.value._usages:
-            logger.warning("The certificate has an extended key usage extension with value: "+usg._name)
+            logger.warning("Das Zertifikat hat eine ExtendedKeyUsage Extension mit den folgenden Eigenschaften"+usg._name)
 
 
         #TODO: Ist das der richtige Wert?
@@ -178,8 +185,8 @@ def list_alternative_names(cert):
 
     try:
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
-        logger.info("The certificate has an AlternateiveName Extension")
-        logger.warning("The value of the AlternativeName Extension is: "+str(name_extension))
+        logger.info("Das Zertifikat hat eine AlternateiveName Extension")
+        logger.warning("Der Inhalt der AlternativeName Extension ist: "+str(name_extension))
 
         #TODO: Die Extension könnte man noch nett auswerten.
 
@@ -194,35 +201,12 @@ def print_subject(cert):
     for entry in cert.subject._attributes:
         for attr in entry:
             logger.info( attr.oid._name+ ": " + attr.value)
-        # for entry in certs:
-        #     cert = x509.load_pem_x509_certificate(str(entry).encode('ascii','ignore'), default_backend())
-        #     logger.info("Now checking certificate with serial: "+str(cert.serial_number))
-        #     logger.info("Here come the attributes of the subject of the certificate:")
-        #     for attribute in cert.subject:
-        #         logger.info(attribute)
-        #
-        #
-        #
-        #     logger.info("The certificate contains the following extensions:")
-        #     for extension in cert.extensions:
-        #         logger.info(extension.oid)
-        #
-        #     keyUsage=cert.extensions.get_extension_for_class(x509.KeyUsage)
-        #     # print keyUsage
-        #     # print type(keyUsage)
-        #     logger.warning("The keyUsage extension contains:")
-        #     logger.warning("digital_signature:"+str(keyUsage.value.digital_signature))
-        #     logger.warning("key_cert_sign:"+str(keyUsage.value.key_cert_sign))
-        #     logger.warning("crl_sign:"+str(keyUsage.value.crl_sign))
-        #
-        #     # extendedKeyUsage=cert.extensions.get_extension_for_class(x509.ExtendedKeyUsage)
-        #     # logger.warning("The extendedKeyUsage extension contains:")
-        #     # logger.warning(extendedKeyUsage)
-        #
-        #     # print cert.serial_number
-        #     # print cert.subject
-        #     # print cert.issuer
-        #     # print cert.signature_hash_algorithm
-        #     # print cert.signature_algorithm_oid
-        #     # print cert.public_key()
-        #     # print cert.extensions
+
+def print_serial(cert):
+        print cert.serial_number
+        print cert.subject
+        print cert.issuer
+        print cert.signature_hash_algorithm
+        print cert.signature_algorithm_oid
+        print cert.public_key()
+        print cert.extensions

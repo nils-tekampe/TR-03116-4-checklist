@@ -31,8 +31,10 @@ def test_server_for_protocol(hostname,port):
 
     logger.info("Tests aus Kapitel 2.3 abgeschlossen.")
     logger.info("Teste die Anforderungen aus Kapitel 2.4")
-
-    #TODO: Ephemeral Parameter
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Anforderung 2.4.1 Überprüfe die ephemeralen Parameter")
+    logger.info("------------------------------------------------------------------------------------")
+    test_key_exchange(hostname,port)
     #TODO: Einstellungen der Bibliothek prüfen
 
     logger.info("Teste die Anforderungen aus Kapitel 2.5")
@@ -67,16 +69,16 @@ def test_supported_protocols(hostname, port):
 
             ssl_sock.connect((hostname, port))
             if protocol[2]:
-                logger.info("Tested server does support " + protocol[1] + " This is the expected behavior")
+                logger.info("Server unterstützt " + protocol[1] + " Dieses Verhalten ist OK")
             else:
-                logger.error("Tested server does support " + protocol[1] + " This should not be the case")
+                logger.error("Server unterstützt " + protocol[1] + " Das sollte nicht der Fall sein")
 
         except ssl.SSLError as err:
             if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1]:
                 if not protocol[2]:
-                    logger.info("Tested server does not support " + protocol[1] + " This is the expected behavior")
+                    logger.info("Server unterstützt NICHT " + protocol[1] + " Dieses Verhalten ist OK")
                 else:
-                    logger.error("Tested server does not support " + protocol[1] + " This should not be the case")
+                    logger.error("Server unterstützt NICHT" + protocol[1] + " Das sollte nicht der Fall sein")
 
 
 def test_supported_cipher_suites(hostname, port, crypto_type):
@@ -120,38 +122,46 @@ def test_supported_cipher_suites(hostname, port, crypto_type):
             priority= ssl_sock.cipher()[2]
 
             if not allowed:
-                logger.error("Tested server does support unallowed " + cipher + " with priority " + str(priority) +  " This should not be the case")
+                logger.error("Server unterstützt verbotene cipher-suite: " + cipher + " mit Priorität" + str(priority) +  " Das sollte nicht der Fall sein")
 
             elif must or should or optional:
-                logger.info(cipher + " supported with priority " + str(priority) + ". Please check with checklist whether this is appropiate for the current system.")
+                logger.warning(cipher + " wird unterstützt mit Priorität" + str(priority) + ". Bitte in der Checkliste prüfen.")
 
 
         except ssl.SSLError as err:
             if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1] or "NO_CIPHERS_AVAILABLE" in err.args[1]:
                 if must:
-                    logger.error(cipher + " not supported but required by checklist")
+                    logger.error(cipher + " wird nicht unterstützt aber von der Checkliste gefordert")
                 else:
-                    logger.info(cipher + " not supported")
+                    logger.info(cipher + " wird nicht unterstützt. Das scheint OK zu sein.")
 
+def test_key_exchange(hostname, port):
+    #Anforderung 2.4.1
+    openssl_cmd_getcert="echo | openssl s_client -msg -connect "+ hostname +":"+ str(port)+ " | grep 'ServerKey' -A 5"
+
+    proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+    logger.error("Die Nachricht muss leider noch ausgewertet werden. Das ist das Einzige, was noch nicht funktioniert")
+    print out
+    #http://crypto.stackexchange.com/questions/11310/with-openssl-and-ecdhe-how-to-show-the-actual-curve-being-used
 
 
 def test_session_renegotiation(hostname, port):
 #Anforderung 2.5.1
-
     openssl_cmd_getcert="sslyze --regular "  + hostname +":"+str(port)
 
     proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
 
     if "Client-initiated Renegotiation:    OK - Rejected" in out:
-        logger.error("Server supports insecure renegotiation. This shold not be the case")
+        logger.error("Server unterstützt unsichere session renegotiation. Das sollte nicht der Fall sein.")
     else:
-        logger.info("Server does not support insecure renegotiation. This is the expected behavior")
+        logger.info("Server unterstützt unsichere session renegotiation nicht. Das ist so OK")
 
     if "Secure Renegotiation:              OK - Supported" in out:
-        logger.error("Server supports insecure renegotiation. This shold not be the case")
+        logger.error("Der Server unterstützt die sichere Form der renegotiaion. Das sollte nicht der Fall sein.")
     else:
-        logger.info("Server does not support secure renegotiation based on an extension. This is the expected behavior")
+        logger.info("Der Server unterstützt die sichere Form der renegotiaion nicht. Das ist so OK.")
 
 
 def test_tls_compression(hostname,port):
@@ -162,9 +172,9 @@ def test_tls_compression(hostname,port):
     (out, err) = proc.communicate()
 
     if "Compression: NONE" in out:
-        logger.info("Server does not support compression. This is the expected behavior")
+        logger.info("Server unterstützt keine TLS compression. Das ist das erwartete Verhalten.")
     else:
-        logger.error("Server supports compression. This shold not be the case")
+        logger.error("Server unterstützt TLS compression. Das sollte nicht der Fall sein.")
 
 
 def test_heartbeat_extension(hostname,port):
@@ -176,9 +186,9 @@ def test_heartbeat_extension(hostname,port):
     (out, err) = proc.communicate()
 
     if "heartbeat" in out:
-        logger.error("Server supports the heartbeat extension. This shold not be the case")
+        logger.error("Server unterstützt die Heartbeat-extension. Das sollte nicht der Fall sein.")
     else:
-        logger.info("Server does not support the heartbeat extension. This is the intended behavior")
+        logger.info("Server unterstützt die Heartbeat-Extension nicht. Das ist so OK.")
 
 def test_truncated_hmac_extension(hostname, port):
 #Anforderung 2.5.4
@@ -189,6 +199,6 @@ def test_truncated_hmac_extension(hostname, port):
 
     #TODO: wir brauchen mal einen Server mit einer truncated_hmac extension um zu sehen, ob das hier funktioniert.
     if "truncated_hmac" in out:
-        logger.error("Server supports the truncated_hmac extension. This shold not be the case")
+        logger.error("Server unterstützt die truncated_hmac extension. Das sollte nicht der Fall sein.")
     else:
-        logger.info("Server does not support the truncated_hmac extension. This is the intended behavior")
+        logger.info("Server unterstützt die truncated_hmac extension nicht. Das ist OK.")
