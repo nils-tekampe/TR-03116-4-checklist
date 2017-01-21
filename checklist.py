@@ -6,7 +6,7 @@ from helper import which, logger
 from protocols import *
 from certificates import *
 
-hostname='de-mail.gmx.net' # Das ist der Server, der getestet werden soll
+hostname='www.google.de' # Das ist der Server, der getestet werden soll
 port=443 # und der zugehörige Port
 ca_file="/usr/local/etc/openssl/cert.pem" # Openssl greift auf diese Datei zu und erwartet alle gültigen Root-Zertifikate darin im PEM-Format
 
