@@ -1,14 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
-import socket, ssl
-import logging, logging.config, os, pem
-import subprocess
-from cryptography import x509
-from cryptography.x509 import Certificate
-from cryptography.hazmat.backends import default_backend
-from tls_includes import cipher_suites
-import colorlog
+
 from helper import which, logger
 from protocols import *
 from certificates import *

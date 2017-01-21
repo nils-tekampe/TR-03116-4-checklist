@@ -1,7 +1,6 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
-import socket, ssl
 import logging, logging.config, os, pem
 import subprocess
 from cryptography  import x509
