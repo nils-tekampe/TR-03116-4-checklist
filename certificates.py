@@ -19,7 +19,8 @@ import cryptography.x509
 from cryptography.x509.oid import ExtensionOID
 import re
 
-# def check_intermediate_certificate(cert):
+def check_intermediate_certificate(cert):
+        print "tbd"
 
 def check_root_certificate(cert):
     logger.info("------------------------------------------------------------------------------------")

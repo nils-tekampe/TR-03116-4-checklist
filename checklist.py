@@ -18,11 +18,14 @@ def main():
     test_server_for_protocol(hostname,port)
 
     logger.info("------------------------------------------------------------------------------------")
-    logger.info("We will now obtain the certificates for the later test cases")
+    logger.info("Rufe die Zertifkate für die weiteren Tests ab")
     logger.info("------------------------------------------------------------------------------------")
     certs=read_certificates(hostname,port)
-    # check_leaf_certificate(certs[0])
+    check_leaf_certificate(certs[0])
     check_root_certificate(certs[-1])
+
+    for cert in check_leaf_certificate(certs[1:-2]):
+        check_intermediate_certificate(cert)
 
 if __name__ == "__main__":
     main()
