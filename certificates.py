@@ -6,17 +6,11 @@ import subprocess
 from cryptography  import x509
 from cryptography.hazmat.backends import default_backend
 # from tls_includes import cipher_suites
-import colorlog
 from helper import which, logger
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.hazmat.primitives.asymmetric.dsa import DSAPublicKey
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.backends.openssl.rsa import _RSAPublicKey
-from cryptography.x509 import Certificate
 from cryptography.x509 import load_pem_x509_certificate
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurve
-import cryptography.x509
-from cryptography.x509.oid import ExtensionOID
 import re
 from cryptography.hazmat.primitives import serialization
 from tls_includes import *
@@ -163,7 +157,7 @@ def check_signature_algorithm(cert):
 
 
 def check_for_wildcards(cert):
-    #TODO: Das ist in der Prüfung von CA Zertifkaten anders. Und es müssen auch noch mehr Felder (subject) geprüft werden.
+    #TODO: Das ist in der Prüfung von CA Zertifkaten anders. Die Funktion hier steigt leider aus wenn es die AlternativeNames extension nich gitb und daher kann man sie eigentlich für ein CA-ZErt nicht verwenden. Und es müssen auch noch mehr Felder (subject) geprüft werden.
     for entry in cert.subject._attributes:
         for attr in entry:
             if attr.oid._name=="commonName":

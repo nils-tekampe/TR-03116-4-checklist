@@ -19,10 +19,12 @@ def main(hostame, port, ca_file):
 
     certs=read_certificates(hostname,port)
     check_leaf_certificate(certs[0])
-    check_root_certificate(certs[-1])
+    if len(certs)>1:
+        check_root_certificate(certs[-1])
 
-    for crt in certs[1:-1]:
-        check_intermediate_certificate(crt)
+    if len(certs)>2:
+        for crt in certs[1:-1]:
+            check_intermediate_certificate(crt)
 
 if __name__ == "__main__":
 #TODO: Das Parsen der Parameter von der Kommandozeile könnte man schön machen.
