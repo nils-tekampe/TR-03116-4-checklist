@@ -30,7 +30,7 @@ Folgende Dateien liegen in diesem Repository:
 Der Aufruf erfolg mittels `python checklist.py servername port`
 
 ##Abdeckung der Kriterien
-Eine Übersicht über die Kritierien der Checkliste und ihre Abdeckung ist in der [Testfallübersicht](testfalluebersicht.md )zu finden.
+Eine Übersicht über die Kritierien der Checkliste und ihre Abdeckung ist in der Datei testfalluebersicht.md zu finden.
 
 ##Disclaimmer
 **Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.**
