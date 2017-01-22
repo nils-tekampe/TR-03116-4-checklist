@@ -166,7 +166,7 @@ def check_for_wildcards(cert):
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
         logger.info("Das Zertifikat hat eine AlternativeName Extension")
         logger.info("Der Inhalt der AlternativeName Extension lautet: "+str(name_extension))
-        print vars(name_extension)
+
 
         if re.search(r"\*+",str(name_extension))==None:
             logger.error("Die AlternativeName-Extension enthält mindestens ein *. Das ist nicht OK")
@@ -247,10 +247,11 @@ def list_alternative_names(cert):
     try:
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
         logger.info("Das Zertifikat hat eine AlternateiveName Extension")
-        logger.warning("Der Inhalt der AlternativeName Extension ist: "+str(name_extension))
+        logger.info("Die Einträge für AlternativeNames lauten: ")
 
-        #TODO: Die Extension könnte man noch nett auswerten.
-
+        for entry in name_extension._value._general_names:
+            logger.info(entry._value)
+ 
 
     except Exception as err:
         print err
