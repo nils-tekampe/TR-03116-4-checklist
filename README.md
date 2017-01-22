@@ -12,8 +12,24 @@ Das Skript checklist.py überprüft einen TLS-Server auf Konformität zu den Vor
 * SSLyze (muss im Pfad liegen)
 * Unter OSX sollte https://github.com/raggi/openssl-osx-ca installiert sein
 
+##Dateien
+Folgende Dateien liegen in diesem Repository:
+| Datei             | Inhalt                                                                                                                 |
+|:------------------|:-----------------------------------------------------------------------------------------------------------------------|
+| LICENSE.md        | Lizenzinformationen                                                                                                    |
+| README.md         | diese Datei                                                                                                            |
+| certificates.py   | In dieser Datei sind alle Prüfungen implementiert, die sich mit den vom Server präsentierten Zertifikaten beschäftigen |
+| checklist.py      | Hauptdatei für die Implementierung                                                                                     |
+| helper.py         | Hilfsfunktionen                                                                                                        |
+| protocols.py      | In dieser Datei sind alle Prüfungen implementiert, die das TLS-Protokoll selbst betreffen                              |
+| testuebersicht.md | Übersicht über alle Kriterien der Checkliste und ihre Abdeckung                                                        |
+| tls_includes.py   | In dieser Datei sind einige Daten enthalten, die in den anderen Python-Dateien störten                                 |
+
 ##Anwendung
 Der Aufruf erfolg mittels `python checklist.py servername port`
+
+##Abdeckung der Kriterien
+Eine Übersicht über die Kritierien der Checkliste und ihre Abdeckung ist in der Datei testfalluebersicht.md zu finden.
 
 ##Disclaimmer
 **Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.**
