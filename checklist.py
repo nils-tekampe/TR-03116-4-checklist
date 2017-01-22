@@ -11,8 +11,6 @@ from tls_includes import *
 
 
 def main(hostame, port, ca_file):
-    #TODO: Commandline Arguments sind noch in Arbeit
-
     if which('openssl')==None:
         logger.errori('Could not find openssl in the path. Please install openssl and add it to the path. The call this script again. Will exit now.')
         exit (1)

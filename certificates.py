@@ -21,7 +21,7 @@ import re
 from cryptography.hazmat.primitives import serialization
 from tls_includes import *
 
-tmp_cert_file="/tmp/tmp.pem"
+
 
 def check_intermediate_certificate(cert):
     logger.info("------------------------------------------------------------------------------------")
@@ -163,7 +163,7 @@ def check_signature_algorithm(cert):
 
 
 def check_for_wildcards(cert):
-    #TODO: Das ist in CA Zertifkaten anders. Und es müssen auch noch mehr Felder geprüft werden.
+    #TODO: Das ist in der Prüfung von CA Zertifkaten anders. Und es müssen auch noch mehr Felder (subject) geprüft werden.
     for entry in cert.subject._attributes:
         for attr in entry:
             if attr.oid._name=="commonName":
@@ -171,8 +171,6 @@ def check_for_wildcards(cert):
     try:
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
         logger.info("Das Zertifikat hat eine AlternativeName Extension")
-    #    logger.info("Der Inhalt der AlternativeName Extension lautet: "+str(name_extension))
-
 
         if re.search(r"\*+",str(name_extension))==None:
             logger.error("Die AlternativeName-Extension enthält mindestens ein *. Das ist nicht OK")
@@ -225,9 +223,6 @@ def check_cert_for_revocation(cert):
         logger.warning(out)
         logger.warning(err)
 
-
-#TODO: CRL auswerten
-
     except Exception as err:
         print err
         #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
@@ -240,7 +235,7 @@ def check_cert_for_keyusage(cert):
         logger.warning("key_cert_sign: "+ str(keyusage_extension.value.key_cert_sign))
         logger.warning("crl_sign: "+ str(keyusage_extension.value.crl_sign))
 
-        #TODO: Man könnte die Werte auch gleich prüfen, allerdings ist das für CA Zertifkate anders .
+        #TODO: Man könnte die Werte auch gleich prüfen, allerdings ist das für CA Zertifkate anders und daher etwas komplizierter.
 
     except Exception as err:
         print err
