@@ -20,7 +20,40 @@ from cryptography.x509.oid import ExtensionOID
 import re
 
 def check_intermediate_certificate(cert):
-        print "tbd"
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Diese Funktion überprüft ein Intermediate-Zertifikat und deckt die Anforderungen aus Kapitel 2.2 der Checkliste ab.")
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Drucke das subject des Zertifikats. Dies dient nur der Übersicht")
+    print_subject(cert)
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Überprüfe den öffentlichen Schlüssel des Zertifkats (Anforderung 2.2.1)")
+    check_certificate_key(cert)
+
+    if is_cert_ca(cert):
+        logger.info("------------------------------------------------------------------------------------")
+        logger.info("Überprüfe den Signaturalgorithmus (Anforderung 2.2.2)")
+        check_signature_algorithm(cert)
+
+    if is_cert_ca(cert):
+        logger.info("------------------------------------------------------------------------------------")
+        logger.info("Überprüfe auf Wildcards (Anforderung 2.2.3)")
+        check_for_wildcards(cert)
+
+    if is_cert_ca(cert):
+        logger.info("Überprüfe Rückrufinformationen und AuthorityInfoAccess (Anforderung 2.1.4)")
+        check_cert_for_crl(cert)
+        check_cert_for_aia(cert)
+
+
+    if is_cert_ca(cert):
+        logger.info("------------------------------------------------------------------------------------")
+        logger.info("Überprüfe auf BasicConstraint Extension (Anforderung 2.2.5)")
+        check_basic_constraint(cert)
+
+    if is_cert_ca(cert):
+        logger.info("------------------------------------------------------------------------------------")
+        logger.info("Überprüfe keyUsageExtension (Anforderung 2.2.6)")
+        check_cert_for_keyusage(cert)
 
 def check_root_certificate(cert):
     logger.info("------------------------------------------------------------------------------------")
@@ -77,7 +110,7 @@ def check_leaf_certificate(cert):
     logger.info("Überprüfe Sub-Domain Namen (Anforderung 2.1.7)")
     list_alternative_names(cert)
 
-    logger.info(is_cert_ca(cert))
+
 
 def read_certificates(hostname,port):
     try:
@@ -238,10 +271,7 @@ def check_basic_constraint(cert):
 def is_cert_ca(cert):
     try:
         basic_constraint_extension=cert.extensions.get_extension_for_class(x509.BasicConstraints)
-        logger.info("Das Zertifikat hat eine BasicContraint Extension")
-        logger.warning("Der Inhalt der BasicContraint Extension ist: "+str(basic_constraint_extension))
-
-
+        return True
 
     except Exception as err:
         return False
