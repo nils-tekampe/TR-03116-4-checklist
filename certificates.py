@@ -113,6 +113,9 @@ def check_leaf_certificate(cert):
 
 
 def read_certificates(hostname,port):
+    logger.info("------------------------------------------------------------------------------------")
+    logger.info("Rufe die Zertifkate für die weiteren Tests ab")
+    logger.info("------------------------------------------------------------------------------------")
     try:
 
         openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+str(port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
@@ -251,7 +254,7 @@ def list_alternative_names(cert):
 
         for entry in name_extension._value._general_names:
             logger.info(entry._value)
- 
+
 
     except Exception as err:
         print err

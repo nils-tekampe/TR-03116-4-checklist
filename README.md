@@ -16,7 +16,7 @@ Das Skript checklist.py überprüft einen TLS-Server auf Konformität zu den Vor
 Der Aufruf erfolg mittels `python checklist.py servername port`
 
 ##Disclaimmer
-Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.
+**Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.**
 
 ##Beiträge
 Fragen, Anmerkungen und Kommentare sind herzlich willkommen. Am Liebsten nehme ich natürlich Beiträge als Pull-Request.
