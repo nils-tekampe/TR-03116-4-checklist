@@ -13,7 +13,7 @@ Das Skript checklist.py überprüft einen TLS-Server auf Konformität zu den Vor
 * Unter OSX sollte https://github.com/raggi/openssl-osx-ca installiert sein
 
 ##Anwendung
-In der Datei checklist.py müssen die Variablen hostname, port und ca_file gesetzt werden. Anschließend kann das Skript einfach mit python checklist.py gestartet werden.
+Der Aufruf erfolg mittels `python checklist.py servername port`
 
 ##Disclaimmer
 Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.
