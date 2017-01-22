@@ -7,10 +7,8 @@ from protocols import *
 from certificates import *
 import argparse
 import sys
+from tls_includes import *
 
-hostname=""
-port=0
-ca_file=""
 
 def main(hostame, port, ca_file):
     #TODO: Commandline Arguments sind noch in Arbeit
@@ -32,6 +30,4 @@ if __name__ == "__main__":
 #TODO: Das Parsen der Parameter von der Kommandozeile könnte man schön machen.
     hostname=sys.argv[1] # Das ist der Server, der getestet werden soll
     port=sys.argv[2]  # und der zugehörige Port
-    ca_file="/usr/local/etc/openssl/cert.pem" # Openssl greift auf diese Datei zu und erwartet alle gültigen Root-Zertifikate darin im PEM-Format
-
     main(hostname,int(port),ca_file)

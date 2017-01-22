@@ -18,6 +18,10 @@ from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurve
 import cryptography.x509
 from cryptography.x509.oid import ExtensionOID
 import re
+from cryptography.hazmat.primitives import serialization
+from tls_includes import *
+
+tmp_cert_file="/tmp/tmp.pem"
 
 def check_intermediate_certificate(cert):
     logger.info("------------------------------------------------------------------------------------")
@@ -205,9 +209,22 @@ def check_cert_for_aia(cert):
         #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
 
 def check_cert_for_revocation(cert):
+
+    with open(tmp_cert_file, "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+
     try:
         crl_extension=cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
         logger.info("Das Zertifikat hat eine CRLDistributionPoint Extension")
+
+        openssl_cmd_getcert="openssl verify -crl_check_all -CAfile "+ca_file+ " " + tmp_cert_file
+        proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        (out, err) = proc.communicate()
+
+        logger.warning("Die Prüfung des Zertifikats gegen die CRL hat folgendes Ergebnis ergeben:")
+        logger.warning(out)
+        logger.warning(err)
+
 
 #TODO: CRL auswerten
 

@@ -3,9 +3,10 @@
 
 import socket, ssl
 import subprocess
-from tls_includes import cipher_suites
+from tls_includes import *
 from helper import which, logger
-from checklist import ca_file
+
+# from checklist import ca_file
 
 protocols=[
 [ssl.PROTOCOL_TLSv1, "TLSv1", False],
@@ -141,8 +142,8 @@ def test_key_exchange(hostname, port):
 
     proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
-    logger.error("Die Nachricht muss leider noch ausgewertet werden. Das ist das Einzige, was noch nicht funktioniert")
-    print out
+    logger.warning("Die Nachricht muss leider noch ausgewertet werden. Das ist das Einzige, was noch nicht funktioniert")
+    logger.warning( out)
     #http://crypto.stackexchange.com/questions/11310/with-openssl-and-ecdhe-how-to-show-the-actual-curve-being-used
 
 
