@@ -11,6 +11,7 @@ hostname='www.google.de' # Das ist der Server, der getestet werden soll
 port=443 # und der zugehörige Port
 ca_file="/usr/local/etc/openssl/cert.pem" # Openssl greift auf diese Datei zu und erwartet alle gültigen Root-Zertifikate darin im PEM-Format
 
+#TODO: Commandline Arguments sind noch in Arbeit
 parser=argparse.ArgumentParser(description="Dieses Skript testet einen TLS Server auf Konformität zur Checkliste der TR 03116-4")
 parser.add_argument("server", type=str, help="Der zu testende Server")
 parser.add_argument("port", type=int, help="Der Port des zu testenden Server")
