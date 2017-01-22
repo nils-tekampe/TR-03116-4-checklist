@@ -117,7 +117,6 @@ def read_certificates(hostname,port):
     logger.info("Rufe die Zertifkate für die weiteren Tests ab")
     logger.info("------------------------------------------------------------------------------------")
     try:
-
         openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+str(port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
@@ -168,7 +167,7 @@ def check_for_wildcards(cert):
     try:
         name_extension=cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
         logger.info("Das Zertifikat hat eine AlternativeName Extension")
-        logger.info("Der Inhalt der AlternativeName Extension lautet: "+str(name_extension))
+    #    logger.info("Der Inhalt der AlternativeName Extension lautet: "+str(name_extension))
 
 
         if re.search(r"\*+",str(name_extension))==None:

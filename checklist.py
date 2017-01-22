@@ -34,4 +34,4 @@ if __name__ == "__main__":
     port=sys.argv[2]  # und der zugehörige Port
     ca_file="/usr/local/etc/openssl/cert.pem" # Openssl greift auf diese Datei zu und erwartet alle gültigen Root-Zertifikate darin im PEM-Format
 
-    main(hostname,port,ca_file)
+    main(hostname,int(port),ca_file)
