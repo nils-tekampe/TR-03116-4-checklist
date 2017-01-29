@@ -1,7 +1,8 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
-ca_file="/usr/local/etc/openssl/cert.pem" # Openssl greift auf diese Datei zu und erwartet alle gültigen Root-Zertifikate darin im PEM-Format
+# ca_file="/usr/local/etc/openssl/cert.pem" # Openssl greift auf diese Datei zu und erwartet alle gültigen Root-Zertifikate darin im PEM-Format
+ca_file=""
 tmp_folder="/tmp"
 tmp_cert_file="/tmp/tmp.pem"
 hostname=""
