@@ -195,7 +195,6 @@ def check_for_wildcards(cert):
         logger.error("Es existiert keine AlternativeName-Extension")
         #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
 
-
 def check_cert_for_crl(cert):
     try:
         crl_extension=cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)

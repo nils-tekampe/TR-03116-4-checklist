@@ -3,7 +3,7 @@
 
 
 from helper import which, logger
-from protocols import *
+from protocols import Server
 from certificates import *
 import argparse
 import sys
@@ -20,7 +20,9 @@ def main(hostname, port, ca_file, server_certificates):
         exit (1)
 
 
-    test_server_for_protocol(hostname,port)
+    svr=Server(hostname,port,ca_file,server_certificates)
+
+    svr.test_server_for_protocol()
 
     certs=read_certificates(hostname,port,server_certificates)
 
