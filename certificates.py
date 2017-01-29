@@ -110,17 +110,20 @@ def check_leaf_certificate(cert):
 
 
 
-def read_certificates(hostname,port):
+def read_certificates(hostname,port, server_certificates):
     logger.info("------------------------------------------------------------------------------------")
     logger.info("Rufe die Zertifkate für die weiteren Tests ab")
     logger.info("------------------------------------------------------------------------------------")
     try:
-        openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+str(port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
-        proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        (out, err) = proc.communicate()
+        if server_certificates is None:
+            openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ hostname +":"+str(port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
+            proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            (out, err) = proc.communicate()
+            certs = pem.parse(out)
+        else:
+            certs=server_cert
 
-        certs = pem.parse(out)
-        logger.info(str(len(certs)) +" Zertifikate wurden empfangen.")
+        logger.info(str(len(certs)) +" Zertifikate wurden empfangen bzw. eingelesen.")
 
         x509_certs = [load_pem_x509_certificate(str(x).encode('ascii','ignore'),default_backend()) for x in certs]
 
@@ -143,12 +146,29 @@ def check_certificate_key(cert):
     if (type(cert.public_key())==DSAPublicKey):
         logger.error("Das Zertifikat hat einen DSA key. Das sollte nicht der Fall sein. Das Skript wird hier beendet da die weiteren Tests nicht sinnvoll sind.")
         exit(1)
-        #TODO: Der Fall muss noch getestet werden. Die genaue Bezeichnung des Types des public_key ist vermutlich anders
+        #TODO: Der Fall muss noch getestet werden. Die genaue Bezeichnung des Types des public_key könnte leicht anders sein
+
     if (type(cert.public_key())==EllipticCurvePublicKey):
+        #TODO: Dieser Fall ist noch recht ungetestet
+
         logger.info("Das Zertifikat hat einen EllipticCurvePublicKey")
-        logger.warning("Es wird folgende Kurfe verwendet:"+ str(cert.public_key().curve.name)+ " Bitte mit der Checkliste abgleichen")
-        #TODO: Checken, dass der name der Kurve denen in der Checkliste entspricht
-        #TODO: Der Fall muss noch getestet werden. Die genaue Bezeichnung des Types des public_key ist vermutlich anders
+
+        allowed_curves=["brainpoolPP256r1",
+        "brainpoolP384r1",
+        "brainpoolP512r1",
+        "secp224r1",
+        "secp256r1",
+        "secp384r1",
+        "secp521r1"]
+        correct_curve=False
+
+        for crv in allowed_curves:
+            if str(cert.public_key().curve.name)==crv:
+                logger.info("Es wird folgende Kurfe verwendet:"+ str(cert.public_key().curve.name)+ " Das ist OK")
+                correct_curve=True
+        if correct_curve:
+            logger.error("Es wird eine nicht zugelassene Kurve verwendet. Und zwar: "+str(cert.public_key().curve.name))
+
 
 def check_signature_algorithm(cert):
     logger.warning("Der verwendete Signaturalgorithmus ist : "+str(cert.signature_algorithm_oid._name))
@@ -204,12 +224,12 @@ def check_cert_for_revocation(cert):
 
     with open(tmp_cert_file, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
-
     try:
         crl_extension=cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
         logger.info("Das Zertifikat hat eine CRLDistributionPoint Extension")
 
         openssl_cmd_getcert="openssl verify -crl_check_all -CAfile "+ca_file+ " " + tmp_cert_file
+        print openssl_cmd_getcert
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
 
@@ -218,8 +238,9 @@ def check_cert_for_revocation(cert):
         logger.warning(err)
 
     except Exception as err:
-        print err
-        #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
+        logger.error("Fehler bei der Prüfung des Revocation status. Existiert keine CRLDistributionPoint Extension? Es folgt die Ausgabe des Fehlers")
+        logger.error(err)
+        #TODO: Die Fehlerbehandldung könnte man etwas schöner machen
 
 def check_cert_for_keyusage(cert):
     try:
@@ -291,12 +312,12 @@ def print_subject(cert):
     for entry in cert.subject._attributes:
         for attr in entry:
             logger.info( attr.oid._name+ ": " + attr.value)
-
-def print_serial(cert):
-        print cert.serial_number
-        print cert.subject
-        print cert.issuer
-        print cert.signature_hash_algorithm
-        print cert.signature_algorithm_oid
-        print cert.public_key()
-        print cert.extensions
+#
+# def print_serial(cert):
+#         print cert.serial_number
+#         print cert.subject
+#         print cert.issuer
+#         print cert.signature_hash_algorithm
+#         print cert.signature_algorithm_oid
+#         print cert.public_key()
+#         print cert.extensions

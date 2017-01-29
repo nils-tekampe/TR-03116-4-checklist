@@ -10,15 +10,20 @@ import sys
 from tls_includes import *
 
 
-def main(hostname, port, ca_file):
-    print ca_file
+def main(hostname, port, ca_file, server_certificates):
     if which('openssl')==None:
         logger.error('Could not find openssl in the path. Please install openssl and add it to the path. The call this script again. Will exit now.')
         exit (1)
 
+    if which('sslyze')==None:
+        logger.error('Could not find sslyze in the path. Please install sslyze and add it to the path. The call this script again. Will exit now.')
+        exit (1)
+
+
     test_server_for_protocol(hostname,port)
 
-    certs=read_certificates(hostname,port)
+    certs=read_certificates(hostname,port,server_certificates)
+
     check_leaf_certificate(certs[0])
     if len(certs)>1:
         check_root_certificate(certs[-1])
@@ -33,11 +38,21 @@ if __name__ == "__main__":
     parser.add_argument(dest='server', metavar='S', nargs=1, help='The server that should be tested')
     parser.add_argument(dest='port', metavar='P', nargs=1, help='The TLS port that the server speaks')
     parser.add_argument('--cafile',action="store", dest="cafile", help='Use this pem file carrying all the CAs that openssl uses for verification')
-    parser.add_argument('--servercertificates',action="certs", dest="certs", help='Use the certificates in this file as the certificates presented by the server and do not akquire certificates directly.')
+    parser.add_argument('--servercertificates',action="store", dest="certs", help='Use the certificates in this file as the certificates presented by the server and do not akquire certificates directly.')
 
     args=parser.parse_args()
     arguments=vars(args)
-    print arguments['cafile']
 
-    ca_file=arguments['cafile'][0]
-    main(arguments['server'][0],int(arguments['port'][0]),ca_file)
+    global ca_file
+
+    if args.cafile is None:
+        logger.info("No dedicated ca_file provided. Using default vaule.")
+        ca_file="/usr/local/etc/openssl/cert.pem"
+    else:
+        ca_file=args.cafile
+
+
+    logger.info("Using the follwing ca_file: "+ca_file)
+
+
+    main(arguments['server'][0],int(arguments['port'][0]),ca_file, args.certs)
