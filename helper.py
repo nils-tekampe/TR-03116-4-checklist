@@ -19,6 +19,17 @@ def which(program):
             if is_exe(exe_file):
                 return exe_file
 
+def print_h1(message):
+    logger.info("*" * (len(message) + 8))
+    logger.info("*** " + message + " ***")
+    logger.info("*" * (len(message) + 8))
+
+def print_h2(message):
+    logger.info("-" * (len(message) ))
+    logger.info(message )
+    logger.info("-" * (len(message)))
+
+
 logger = colorlog.getLogger("checklist.py")
 logger.setLevel(logging.INFO)
 sh = colorlog.StreamHandler()

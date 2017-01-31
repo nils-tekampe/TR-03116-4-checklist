@@ -6,7 +6,7 @@ from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
 import subprocess
 from tls_includes import *
-from helper import which, logger
+from helper import which, logger, print_h1, print_h2
 from certificate import Certificate
 
 # from checklist import ca_file
@@ -32,15 +32,11 @@ class Server:
       [ssl.PROTOCOL_TLSv1_2,"TLSv1.2",True]]
 
     def test_server_for_protocol(self):
-        logger.info("Test die Anforderungen aus Kapitel 2.3")
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.3.1 Überpreufe die unterstuetzten Protokolle:")
-        logger.info("------------------------------------------------------------------------------------")
+        print_h1("Test die Anforderungen aus Kapitel 2.3")
+        print_h2("Anforderung 2.3.1 Überpreufe die unterstuetzten Protokolle:")
         self.test_supported_protocols()
 
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.3.2/2.3.3/2.3.4 Überpreufe die unterstuetzten Cipher-Suites:")
-        logger.info("------------------------------------------------------------------------------------")
+        print_h2("Anforderung 2.3.2/2.3.3/2.3.4 Überpreufe die unterstuetzten Cipher-Suites:")
         logger.info("Im Folgenden werden die vom Server unterstützten Cipher-Suites gelistet.")
         logger.info("Unerlaubte Cipher-Suites werden direkt markiert. Allerdings muss aktuelle manuell geprpft werden ")
         logger.info("ob die verpflichtenden cipher-suites umgesetzt sind. Außerdem muss die Priorität der  ")
@@ -48,29 +44,21 @@ class Server:
 
         self.test_supported_cipher_suites()
 
-        logger.info("Tests aus Kapitel 2.3 abgeschlossen.")
-        logger.info("Teste die Anforderungen aus Kapitel 2.4")
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.4.1 Überprüfe die ephemeralen Parameter")
-        logger.info("------------------------------------------------------------------------------------")
+        print_h1("Teste die Anforderungen aus Kapitel 2.4")
+        print_h2("Anforderung 2.4.1 Überprüfe die ephemeralen Parameter")
         self.test_key_exchange()
 
-        logger.info("Teste die Anforderungen aus Kapitel 2.5")
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.5.1 Überpruefe Session Renegotiation")
-        logger.info("------------------------------------------------------------------------------------")
+        print_h1("Teste die Anforderungen aus Kapitel 2.5")
+        print_h2("Anforderung 2.5.1 Überpruefe Session Renegotiation")
         self.test_session_renegotiation()
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.5.2 Überpruefe TLS Kompression")
-        logger.info("------------------------------------------------------------------------------------")
+
+        print_h2("Anforderung 2.5.2 Überpruefe TLS Kompression")
         self.test_tls_compression()
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.5.3 Überpruefe auf Heartbeat-Extension")
-        logger.info("------------------------------------------------------------------------------------")
+
+        print_h2("Anforderung 2.5.3 Überpruefe auf Heartbeat-Extension")
         self.test_heartbeat_extension()
-        logger.info("------------------------------------------------------------------------------------")
-        logger.info("Anforderung 2.5.4 Überpruefe auf truncated_hmac-Extension")
-        logger.info("------------------------------------------------------------------------------------")
+
+        print_h2("Anforderung 2.5.4 Überpruefe auf truncated_hmac-Extension")
         self.test_truncated_hmac_extension()
 
     def test_supported_protocols(self):

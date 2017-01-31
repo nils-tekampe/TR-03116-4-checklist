@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-from helper import which, logger
+from helper import which, logger, print_h1, print_h2
 from server import Server
 from certificate import Certificate
 import argparse
@@ -11,6 +11,8 @@ from tls_includes import *
 
 
 def main(hostname, port, ca_file, server_certificates):
+
+    print_h1("Überprüfe Systemvorraussetzungen")
     if which('openssl')==None:
         logger.error('Could not find openssl in the path. Please install openssl and add it to the path. The call this script again. Will exit now.')
         exit (1)
@@ -26,7 +28,6 @@ def main(hostname, port, ca_file, server_certificates):
 
     svr.read_certificates(server_certificates)
 
-    print len(svr.certs)
     svr.certs[0].check_leaf_certificate()
 
     if len(svr.certs)>1:
@@ -37,7 +38,7 @@ def main(hostname, port, ca_file, server_certificates):
             crt.check_intermediate_certificate()
 
 if __name__ == "__main__":
-#TODO: Das Parsen der Parameter von der Kommandozeile könnte man schön machen.
+#TODO: Die globale Variable ist ein bisschen unschön 
     parser=argparse.ArgumentParser(description='Test a TLS server for compliance with TR 3116-4')
     parser.add_argument(dest='server', metavar='S', nargs=1, help='The server that should be tested')
     parser.add_argument(dest='port', metavar='P', nargs=1, help='The TLS port that the server speaks')
