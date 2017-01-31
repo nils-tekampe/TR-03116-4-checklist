@@ -185,11 +185,11 @@ class Certificate:
         with open(tmp_cert_file, "wb") as f:
             f.write(self.cert.public_bytes(serialization.Encoding.PEM))
         try:
-            crl_extension=cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
+            crl_extension=self.cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
             logger.info("Das Zertifikat hat eine CRLDistributionPoint Extension")
 
             openssl_cmd_getcert="openssl verify -crl_check_all -CAfile "+self.ca_file+ " " + self.tmp_cert_file
-            print openssl_cmd_getcert
+
             proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             (out, err) = proc.communicate()
 
