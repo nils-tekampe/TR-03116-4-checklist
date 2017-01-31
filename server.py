@@ -1,14 +1,21 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
-import socket, ssl
+import socket, ssl, pem
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.backends import default_backend
 import subprocess
 from tls_includes import *
 from helper import which, logger
+from certificate import Certificate
 
 # from checklist import ca_file
 
 class Server:
+
+    x509_certs=[]
+    certs=[]
+    number_of_certs=0
 
     def __init__(self, hostname, port, ca_file, certificates):
       self.hostname = hostname
@@ -214,3 +221,28 @@ class Server:
             logger.error("Server unterstützt die truncated_hmac extension. Das sollte nicht der Fall sein.")
         else:
             logger.info("Server unterstützt die truncated_hmac extension nicht. Das ist OK.")
+
+    def read_certificates(self,server_certificates):
+        logger.info("------------------------------------------------------------------------------------")
+        logger.info("Rufe die Zertifkate für die weiteren Tests ab")
+        logger.info("------------------------------------------------------------------------------------")
+        try:
+            if server_certificates is None:
+                openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ self.hostname +":"+str(self.port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
+                proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                (out, err) = proc.communicate()
+                tmp_certs = pem.parse(out)
+            else:
+                tmp_certs=server_certificates
+
+            logger.info(str(len(tmp_certs)) +" Zertifikate wurden empfangen bzw. eingelesen.")
+            self.number_of_certs= len(tmp_certs)
+            self.x509_certs = [load_pem_x509_certificate(str(x).encode('ascii','ignore'),default_backend()) for x in tmp_certs]
+
+            print len(self.x509_certs)
+            for crt in self.x509_certs:
+                self.certs.append(Certificate(crt,self.ca_file, self.tmp_cert_file))
+
+
+        except Exception as err:
+            print err

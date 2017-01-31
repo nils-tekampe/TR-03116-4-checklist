@@ -3,8 +3,8 @@
 
 
 from helper import which, logger
-from protocols import Server
-from certificates import *
+from server import Server
+from certificate import Certificate
 import argparse
 import sys
 from tls_includes import *
@@ -22,17 +22,20 @@ def main(hostname, port, ca_file, server_certificates):
 
     svr=Server(hostname,port,ca_file,server_certificates)
 
-    svr.test_server_for_protocol()
+    # svr.test_server_for_protocol()
 
-    certs=read_certificates(hostname,port,server_certificates)
+    svr.read_certificates(server_certificates)
 
-    check_leaf_certificate(certs[0])
-    if len(certs)>1:
-        check_root_certificate(certs[-1])
+    print len(svr.certs)
+    svr.certs[0].check_leaf_certificate()
 
-    if len(certs)>2:
-        for crt in certs[1:-1]:
-            check_intermediate_certificate(crt)
+    # check_leaf_certificate(certs[0])
+    # if len(certs)>1:
+    #     check_root_certificate(certs[-1])
+    #
+    # if len(certs)>2:
+    #     for crt in certs[1:-1]:
+    #         check_intermediate_certificate(crt)
 
 if __name__ == "__main__":
 #TODO: Das Parsen der Parameter von der Kommandozeile könnte man schön machen.
