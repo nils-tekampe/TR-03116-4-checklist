@@ -28,6 +28,9 @@ Folgende Dateien liegen in diesem Repository:
 
 ##Anwendung
 Der Aufruf erfolg mittels `python checklist.py servername port`
+Optional unterstützt das Skript die beiden folgenden Parameter:
+* --cafileUse Mit diesem Paramter kann eine Datei übergeben werden, in der die CAs (als PEM) abgespeichert sind, denen openssl vertraut. 
+* --servercertificates Mit diesem Parameter kann ein Link auf eine Datei übergeben werden, in der alle Zertifikate des Servers (also des Servers selbst plus Intermediate-Zertifikat und Root) als PEM abgespeichert sind. Falls dieser Parameter angegeben wird, versucht das Skript nicht, die Zertifikate selbst abzurufen sondern nutzt die Zertifikate aus dieser Datei. Dies kann insbesondere in Fällen nützlich sein, in denen der automatische Download der Zertifikate fehlschlägt.
 
 ##Abdeckung der Kriterien
 Eine Übersicht über die Kritierien der Checkliste und ihre Abdeckung ist in der Datei testuebersicht.md zu finden.
