@@ -35,28 +35,28 @@ class Certificate:
         if self.is_cert_ca():
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe den Signaturalgorithmus (Anforderung 2.2.2)")
-            check_signature_algorithm()
+            self.check_signature_algorithm()
 
         if self.is_cert_ca():
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe auf Wildcards (Anforderung 2.2.3)")
-            check_for_wildcards()
+            self.check_for_wildcards()
 
-        if self.is_cert_ca(cert):
+        if self.is_cert_ca():
             logger.info("Überprüfe Rückrufinformationen und AuthorityInfoAccess (Anforderung 2.1.4)")
-            check_cert_for_crl()
-            check_cert_for_aia()
+            self.check_cert_for_crl()
+            self.check_cert_for_aia()
 
 
-        if self.is_cert_ca(cert):
+        if self.is_cert_ca():
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe auf BasicConstraint Extension (Anforderung 2.2.5)")
-            check_basic_constraint(cert)
+            self.check_basic_constraint()
 
-        if self.is_cert_ca(cert):
+        if self.is_cert_ca():
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe keyUsageExtension (Anforderung 2.2.6)")
-            check_cert_for_keyusage(cert)
+            self.check_cert_for_keyusage()
 
     def check_root_certificate(self):
         logger.info("------------------------------------------------------------------------------------")
@@ -249,7 +249,6 @@ class Certificate:
             #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
 
     def list_alternative_names(self):
-
         try:
             name_extension=self.cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
             logger.info("Das Zertifikat hat eine AlternateiveName Extension")
