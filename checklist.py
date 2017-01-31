@@ -22,20 +22,19 @@ def main(hostname, port, ca_file, server_certificates):
 
     svr=Server(hostname,port,ca_file,server_certificates)
 
-    # svr.test_server_for_protocol()
+    svr.test_server_for_protocol()
 
     svr.read_certificates(server_certificates)
 
     print len(svr.certs)
     svr.certs[0].check_leaf_certificate()
 
-    # check_leaf_certificate(certs[0])
-    # if len(certs)>1:
-    #     check_root_certificate(certs[-1])
-    #
-    # if len(certs)>2:
-    #     for crt in certs[1:-1]:
-    #         check_intermediate_certificate(crt)
+    if len(svr.certs)>1:
+        svr.certs[-1].check_root_certificate()
+
+    if len(svr.certs)>2:
+        for crt in svr.certs[1:-1]:
+            crt.check_intermediate_certificate()
 
 if __name__ == "__main__":
 #TODO: Das Parsen der Parameter von der Kommandozeile könnte man schön machen.
