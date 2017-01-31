@@ -22,7 +22,7 @@ Folgende Dateien liegen in diesem Repository:
 | certificates.py   | In dieser Datei sind alle Prüfungen implementiert, die sich mit den vom Server präsentierten Zertifikaten beschäftigen |
 | checklist.py      | Hauptdatei für die Implementierung                                                                                     |
 | helper.py         | Hilfsfunktionen                                                                                                        |
-| protocols.py      | In dieser Datei sind alle Prüfungen implementiert, die das TLS-Protokoll selbst betreffen                              |
+| server.py         | In dieser Datei sind alle Prüfungen implementiert, die das TLS-Protokoll selbst betreffen                              |
 | testuebersicht.md | Übersicht über alle Kriterien der Checkliste und ihre Abdeckung                                                        |
 | tls_includes.py   | In dieser Datei sind einige Daten enthalten, die in den anderen Python-Dateien störten                                 |
 

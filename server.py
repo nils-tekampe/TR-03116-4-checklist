@@ -236,13 +236,12 @@ class Server:
                 tmp_certs=server_certificates
 
             logger.info(str(len(tmp_certs)) +" Zertifikate wurden empfangen bzw. eingelesen.")
-            self.number_of_certs= len(tmp_certs)
-            self.x509_certs = [load_pem_x509_certificate(str(x).encode('ascii','ignore'),default_backend()) for x in tmp_certs]
 
-            print len(self.x509_certs)
-            for crt in self.x509_certs:
-                self.certs.append(Certificate(crt,self.ca_file, self.tmp_cert_file))
+            for crt in tmp_certs:
+                self.x509_certs.append(load_pem_x509_certificate(str(crt).encode('ascii','ignore'),default_backend()))
 
+            for x509 in self.x509_certs:
+                self.certs.append(Certificate(x509,self.ca_file, tmp_cert_file))
 
         except Exception as err:
             print err

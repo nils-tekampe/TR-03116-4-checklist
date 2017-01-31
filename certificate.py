@@ -17,8 +17,8 @@ from tls_includes import *
 
 class Certificate:
 
-    def __init__(cert, ca_file, tmp_cert_file):
-      self.cert=cipher_suites
+    def __init__(self, cert, ca_file, tmp_cert_file):
+      self.cert=cert
       self.ca_file=ca_file
       self.tmp_cert_file=tmp_cert_file
 
@@ -27,33 +27,33 @@ class Certificate:
         logger.info("Diese Funktion überprüft ein Intermediate-Zertifikat und deckt die Anforderungen aus Kapitel 2.2 der Checkliste ab.")
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Drucke das subject des Zertifikats. Dies dient nur der Übersicht")
-        print_subject()
+        self.print_subject()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe den öffentlichen Schlüssel des Zertifkats (Anforderung 2.2.1)")
-        check_certificate_key()
+        self.check_certificate_key()
 
-        if is_cert_ca():
+        if self.is_cert_ca():
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe den Signaturalgorithmus (Anforderung 2.2.2)")
             check_signature_algorithm()
 
-        if is_cert_ca():
+        if self.is_cert_ca():
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe auf Wildcards (Anforderung 2.2.3)")
             check_for_wildcards()
 
-        if is_cert_ca(cert):
+        if self.is_cert_ca(cert):
             logger.info("Überprüfe Rückrufinformationen und AuthorityInfoAccess (Anforderung 2.1.4)")
             check_cert_for_crl()
             check_cert_for_aia()
 
 
-        if is_cert_ca(cert):
+        if self.is_cert_ca(cert):
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe auf BasicConstraint Extension (Anforderung 2.2.5)")
             check_basic_constraint(cert)
 
-        if is_cert_ca(cert):
+        if self.is_cert_ca(cert):
             logger.info("------------------------------------------------------------------------------------")
             logger.info("Überprüfe keyUsageExtension (Anforderung 2.2.6)")
             check_cert_for_keyusage(cert)
@@ -63,22 +63,22 @@ class Certificate:
         logger.info("Diese Funktion überprüft das CA-Zertifikat und deckt die Anforderungen aus Kapitel 2.2 der Checkliste ab.")
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Drucke das subject des Zertifikats. Dies dient nur der Übersicht")
-        print_subject()
+        self.print_subject()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe den öffentlichen Schlüssel des Zertifkats (Anforderung 2.2.1)")
-        check_certificate_key()
+        self.check_certificate_key()
 
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe auf Wildcards (Anforderung 2.2.3)")
-        check_for_wildcards()
+        self.check_for_wildcards()
 
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe auf BasicConstraint Extension (Anforderung 2.2.5)")
-        check_basic_constraint()
+        self.check_basic_constraint()
 
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe keyUsageExtension (Anforderung 2.2.6)")
-        check_cert_for_keyusage()
+        self.check_cert_for_keyusage()
 
 
     def check_leaf_certificate(self):
@@ -86,35 +86,32 @@ class Certificate:
         logger.info("Diese Funktion überprüft das Server-Zertifikat und deckt die Anforderungen aus Kapitel 2.1 der Checkliste ab.")
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Drucke das subject des Zertifikats. Dies dient nur der Übersicht")
-        print_subject()
+        self.print_subject()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe den öffentlichen Schlüssel des Zertifkats (Anforderung 2.1.1)")
-        check_certificate_key()
+        self.check_certificate_key()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe den Signaturalgorithmus (Anforderung 2.1.2)")
-        check_signature_algorithm()
+        self.check_signature_algorithm()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe auf Wildcards (Anforderung 2.1.3)")
-        check_for_wildcards()
+        self.check_for_wildcards()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe Rückrufinformationen und AuthorityInfoAccess (Anforderung 2.1.4)")
-        check_cert_for_crl()
-        check_cert_for_aia()
+        self.check_cert_for_crl()
+        self.check_cert_for_aia()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe ob das Zertifikat gesperrt ist (Anforderung 2.1.5)")
-        check_cert_for_revocation()
+        self.check_cert_for_revocation()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe keyUsageExtension (Anforderung 2.1.6)")
-        check_cert_for_keyusage()
+        self.check_cert_for_keyusage()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe extendedKeyUsageExtension (Anforderung 2.1.7)")
-        check_cert_for_extended_keyusage()
+        self.check_cert_for_extended_keyusage()
         logger.info("------------------------------------------------------------------------------------")
         logger.info("Überprüfe Sub-Domain Namen (Anforderung 2.1.7)")
-        list_alternative_names()
-
-
-
+        self.list_alternative_names()
 
     def check_certificate_key(self):
         if (type(self.cert.public_key()) is _RSAPublicKey):
@@ -232,8 +229,10 @@ class Certificate:
             #TODO: Man könnte die Werte auch gleich prüfen, allerdings ist das für CA Zertifkate anders und daher etwas komplizierter.
 
         except Exception as err:
-            print err
-            #TODO: wenn es die Extension nicht gibt, tritt vermutlich ein Fehler auf, den man hier behandeln sollte
+            if "No <class 'cryptography.x509.extensions.KeyUsage'> extension was found" in str(err):
+                logger.error("Es wurde keine keyUsage Extension gefunden")
+            else:
+                print err
 
     def check_cert_for_extended_keyusage(self):
         try:
@@ -286,6 +285,7 @@ class Certificate:
             return False
 
     def print_subject(self):
+        # print self.cert
         for entry in self.cert.subject._attributes:
             for attr in entry:
                 logger.info( attr.oid._name+ ": " + attr.value)
