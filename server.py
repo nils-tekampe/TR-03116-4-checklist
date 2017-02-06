@@ -5,17 +5,39 @@ import socket, ssl, pem
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
 import subprocess
-from tls_includes import *
 from helper import which, logger, print_h1, print_h2
 from certificate import Certificate
-
-# from checklist import ca_file
 
 class Server:
 
     x509_certs=[]
     certs=[]
     number_of_certs=0
+    cipher_suites=[["TLS_DHE_RSA_WITH_AES_128_CBC_SHA256","DHE-RSA-AES128-SHA256","RSA","OPTIONAL"  ],
+      ["TLS_DHE_RSA_WITH_AES_256_CBC_SHA256","DHE-RSA-AES256-SHA256", "RSA", "OPTIONAL" ],
+      ["TLS_DHE_RSA_WITH_AES_128_GCM_SHA256","DHE-RSA-AES128-GCM-SHA256","RSA", "OPTIONAL"  ],
+      ["TLS_DHE_RSA_WITH_AES_256_GCM_SHA384" ,"DHE-RSA-AES256-GCM-SHA384","RSA", "OPTIONAL"  ],
+      ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256","ECDHE-RSA-AES128-SHA256","RSA","MUST"  ],
+      ["TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384","ECDHE-RSA-AES256-SHA384","RSA", "SHOULD"  ],
+      ["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256","ECDHE-RSA-AES128-GCM-SHA256","RSA","MUST"  ],
+      ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384","ECDHE-RSA-AES256-GCM-SHA384","RSA","SHOULD"  ],
+      ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA","ECDHE-RSA-AES128-SHA","RSA","OPTIONAL"],
+      ["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA","","RSA","OPTIONAL"], #TODO: Mein Openssl unterstützt diese Cipher gar nicht.
+      ["TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA","ECDHE-RSA-AES256-SHA","RSA","OPTIONAL"],
+      ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA","","RSA","OPTIONAL"],#TODO: Mein Openssl unterstützt diese Cipher gar nicht.
+      ["TLS_DHE_RSA_WITH_AES_128_CBC_SHA","DHE-RSA-AES128-SHA","RSA","OPTIONAL"],
+      ["TLS_DHE_RSA_WITH_AES_256_CBC_SHA","DHE-RSA-AES256-SHA","RSA","OPTIONAL"],
+      ["TLS_DHE_RSA_WITH_AES_128_GCM_SHA","","RSA","OPTIONAL"],#TODO: Mein Openssl unterstützt diese Cipher gar nicht.
+      ["TLS_DHE_RSA_WITH_AES_256_GCM_SHA","","RSA","OPTIONAL"],#TODO: Mein Openssl unterstützt diese Cipher gar nicht.
+      ["TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256","ECDHE-ECDSA-AES128-SHA256", "EC", "MUST"],
+      ["TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384","ECDHE-ECDSA-AES256-SHA384","EC", "SHOULD"  ],
+      ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256" ,"ECDHE-ECDSA-AES128-GCM-SHA256","EC", "MUST"  ],
+      ["TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384","ECDHE-ECDSA-AES256-GCM-SHA384","EC", "SHOULD"  ],
+      ["TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA","ECDHE-ECDSA-AES128-SHA","EC", "OPTIONAL"  ],
+      ["TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA","ECDHE-ECDSA-AES256-SHA","EC", "OPTIONAL"  ],
+      ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA","","EC", "OPTIONAL"  ],#TODO: Mein Openssl unterstützt diese Cipher gar nicht.
+      ["TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA","","EC", "OPTIONAL"  ]]#TODO: Mein Openssl unterstützt diese Cipher gar nicht.
+
 
     def __init__(self, hostname, port, ca_file, certificates):
       self.hostname = hostname
@@ -102,7 +124,7 @@ class Server:
 
         for cipher in all_ciphers:
             try:
-                cipher_list = [x for x in cipher_suites if x[1] == cipher and x[2]==crypto_type ]
+                cipher_list = [x for x in self.cipher_suites if x[1] == cipher and x[2]==crypto_type ]
                 allowed=should=must=optional=False
 
                 if len(cipher_list)==0:
@@ -229,7 +251,7 @@ class Server:
                 self.x509_certs.append(load_pem_x509_certificate(str(crt).encode('ascii','ignore'),default_backend()))
 
             for x509 in self.x509_certs:
-                self.certs.append(Certificate(x509,self.ca_file, tmp_cert_file))
+                self.certs.append(Certificate(x509,self.ca_file))
 
         except Exception as err:
             print err

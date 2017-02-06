@@ -13,14 +13,15 @@ from cryptography.hazmat.backends.openssl.rsa import _RSAPublicKey
 from cryptography.x509 import load_pem_x509_certificate
 import re
 from cryptography.hazmat.primitives import serialization
-from tls_includes import *
+import tempfile
+import os
 
 class Certificate:
 
-    def __init__(self, cert, ca_file, tmp_cert_file):
+    def __init__(self, cert, ca_file):
       self.cert=cert
       self.ca_file=ca_file
-      self.tmp_cert_file=tmp_cert_file
+
 
     def check_intermediate_certificate(self):
         print_h1("Diese Funktion überprüft ein Intermediate-Zertifikat und deckt die Anforderungen aus Kapitel 2.2 der Checkliste ab.")
@@ -182,13 +183,15 @@ class Certificate:
 
     def check_cert_for_revocation(self):
 
-        with open(tmp_cert_file, "wb") as f:
-            f.write(self.cert.public_bytes(serialization.Encoding.PEM))
+        tmp_file =tempfile.NamedTemporaryFile(delete=False)
+        tmp_file.write(self.cert.public_bytes(serialization.Encoding.PEM))
+        tmp_file.close()
+
         try:
             crl_extension=self.cert.extensions.get_extension_for_class(x509.CRLDistributionPoints)
             logger.info("Das Zertifikat hat eine CRLDistributionPoint Extension")
 
-            openssl_cmd_getcert="openssl verify -crl_check_all -CAfile "+self.ca_file+ " " + self.tmp_cert_file
+            openssl_cmd_getcert="openssl verify -crl_check_all -CAfile "+self.ca_file+ " " + tmp_file.name
 
             proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             (out, err) = proc.communicate()

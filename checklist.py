@@ -4,11 +4,8 @@
 
 from helper import which, logger, print_h1, print_h2
 from server import Server
-from certificate import Certificate
 import argparse
-import sys
-from tls_includes import *
-
+# from tls_includes import *
 
 def main(hostname, port, ca_file, server_certificates):
 
@@ -38,7 +35,7 @@ def main(hostname, port, ca_file, server_certificates):
             crt.check_intermediate_certificate()
 
 if __name__ == "__main__":
-#TODO: Die globale Variable ist ein bisschen unschön 
+#TODO: Die globale Variable ist ein bisschen unschön
     parser=argparse.ArgumentParser(description='Test a TLS server for compliance with TR 3116-4')
     parser.add_argument(dest='server', metavar='S', nargs=1, help='The server that should be tested')
     parser.add_argument(dest='port', metavar='P', nargs=1, help='The TLS port that the server speaks')
@@ -58,6 +55,5 @@ if __name__ == "__main__":
 
 
     logger.info("Using the follwing ca_file: "+ca_file)
-
 
     main(arguments['server'][0],int(arguments['port'][0]),ca_file, args.certs)
