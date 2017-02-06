@@ -24,12 +24,11 @@ Folgende Dateien liegen in diesem Repository:
 | helper.py         | Hilfsfunktionen                                                                                                        |
 | server.py         | In dieser Datei sind alle Prüfungen implementiert, die das TLS-Protokoll selbst betreffen                              |
 | testuebersicht.md | Übersicht über alle Kriterien der Checkliste und ihre Abdeckung                                                        |
-| tls_includes.py   | In dieser Datei sind einige Daten enthalten, die in den anderen Python-Dateien störten                                 |
 
 ##Anwendung
 Der Aufruf erfolg mittels `python checklist.py servername port`
 Optional unterstützt das Skript die beiden folgenden Parameter:
-* --cafileUse Mit diesem Paramter kann eine Datei übergeben werden, in der die CAs (als PEM) abgespeichert sind, denen openssl vertraut. 
+* --cafileUse Mit diesem Paramter kann eine Datei übergeben werden, in der die CAs (als PEM) abgespeichert sind, denen openssl vertraut.
 * --servercertificates Mit diesem Parameter kann ein Link auf eine Datei übergeben werden, in der alle Zertifikate des Servers (also des Servers selbst plus Intermediate-Zertifikat und Root) als PEM abgespeichert sind. Falls dieser Parameter angegeben wird, versucht das Skript nicht, die Zertifikate selbst abzurufen sondern nutzt die Zertifikate aus dieser Datei. Dies kann insbesondere in Fällen nützlich sein, in denen der automatische Download der Zertifikate fehlschlägt.
 
 ##Abdeckung der Kriterien
