@@ -243,7 +243,7 @@ class Server:
                 (out, err) = proc.communicate()
                 tmp_certs = pem.parse(out)
             else:
-                tmp_certs=server_certificates
+                tmp_certs=pem.parse_file(server_certificates)
 
             logger.info(str(len(tmp_certs)) +" Zertifikate wurden empfangen bzw. eingelesen.")
 
