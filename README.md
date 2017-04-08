@@ -8,6 +8,7 @@ Das Skript checklist.py überprüft einen TLS-Server auf Konformität zu den Vor
 * Installierte Python Pakete (pip install ...)
   * TLS
   * colorlog
+  * pem
 * openssl binary (muss im Pfad liegen)
 * SSLyze (muss im Pfad liegen)
 * Unter OSX sollte https://github.com/raggi/openssl-osx-ca installiert sein
