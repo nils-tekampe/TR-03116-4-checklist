@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
+import string
 import socket, ssl, pem
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
@@ -39,9 +40,10 @@ class Server:
       ["TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA","","EC", "OPTIONAL"  ]]#TODO: Mein Openssl unterstützt diese Cipher gar nicht.
 
 
-    def __init__(self, hostname, port, ca_file, certificates):
+    def __init__(self, hostname, port, ca_file, certificates, proxy):
       self.hostname = hostname
       self.port=port
+      self.proxy=proxy
       if ca_file is not None:
           self.ca_file=ca_file
       else:
@@ -52,6 +54,11 @@ class Server:
       [ssl.PROTOCOL_TLSv1, "TLSv1", False],
       [ssl.PROTOCOL_TLSv1_1,"TLSv1.1", False],
       [ssl.PROTOCOL_TLSv1_2,"TLSv1.2",True]]
+      self.openssl_client_proxy_part = ""
+      self.sslyze_proxy_part = ""
+      if self.proxy is not None:
+        self.openssl_client_proxy_part = " -proxy " + self.proxy[0] + ":" + str(self.proxy[1]) + " "
+        self.sslyze_proxy_part = " --https_tunnel=http:\\" + self.proxy[0] + ":" + str(self.proxy[1]) + " "  
 
     def test_server_for_protocol(self):
         print_h1("Test die Anforderungen aus Kapitel 2.3")
@@ -92,10 +99,7 @@ class Server:
                 context.check_hostname = True
                 context.load_default_certs()
 
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                ssl_sock = context.wrap_socket(s, server_hostname=self.hostname)
-
-                ssl_sock.connect((self.hostname, self.port))
+                self.__connect_ssl_socket(context)          
                 if protocol[2]:
                     logger.info("Server unterstützt " + protocol[1] + " Dieses Verhalten ist OK")
                 else:
@@ -145,9 +149,7 @@ class Server:
                 context.check_hostname = True
                 context.load_default_certs()
 
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                ssl_sock = context.wrap_socket(s, server_hostname=self.hostname)
-                ssl_sock.connect((self.hostname, self.port))
+                ssl_sock=self.__connect_ssl_socket(context)
                 priority= ssl_sock.cipher()[2]
 
                 if not allowed:
@@ -158,7 +160,12 @@ class Server:
 
 
             except ssl.SSLError as err:
-                if "SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1] or "NO_CIPHERS_AVAILABLE" in err.args[1]:
+                if len(err.args) > 1 and ("SSLV3_ALERT_HANDSHAKE_FAILURE" in err.args[1] or "NO_CIPHERS_AVAILABLE" in err.args[1]):
+                    if must:
+                        logger.error(cipher + " wird nicht unterstützt aber von der Checkliste gefordert")
+                    else:
+                        logger.info(cipher + " wird nicht unterstützt. Das scheint OK zu sein.")
+                if len(err.args) == 1:
                     if must:
                         logger.error(cipher + " wird nicht unterstützt aber von der Checkliste gefordert")
                     else:
@@ -166,8 +173,8 @@ class Server:
 
     def test_key_exchange(self):
         #Anforderung 2.4.1
-        openssl_cmd_getcert="echo | openssl s_client -msg -connect "+ self.hostname +":"+ str(self.port)+ " | grep 'ServerKey' -A 5"
-
+        openssl_cmd_getcert="echo | openssl s_client -msg -connect "+ self.hostname +":"+ str(self.port)+ self.openssl_client_proxy_part + " | grep 'ServerKey' -A 5"
+        
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
         logger.warning("Die Nachricht muss leider noch ausgewertet werden. Das ist das Einzige, was noch nicht funktioniert")
@@ -177,8 +184,8 @@ class Server:
 
     def test_session_renegotiation(self):
     #Anforderung 2.5.1
-        openssl_cmd_getcert="sslyze --regular "  + self.hostname +":"+str(self.port)
-
+    
+        openssl_cmd_getcert="sslyze --regular "  + self.hostname +":"+str(self.port) + self.sslyze_proxy_part
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
 
@@ -195,8 +202,8 @@ class Server:
 
     def test_tls_compression(self):
     #Anforderung 2.5.2
-
-        openssl_cmd_getcert=" echo "R" | openssl s_client -CAfile "+self.ca_file+" -connect "+ self.hostname +":"+str(self.port)
+        openssl_cmd_getcert=" echo "R" | openssl s_client -CAfile "+self.ca_file+" -connect "+ self.hostname +":"+str(self.port) + self.openssl_client_proxy_part
+        
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
 
@@ -209,8 +216,8 @@ class Server:
     def test_heartbeat_extension(self):
         #Anforderung 2.5.3
         #Thanks to  https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html
+        openssl_cmd_getcert=" echo Q | openssl s_client -CAfile "+ self.ca_file + " -connect "+ self.hostname +":"+str(self.port)+" -tlsextdebug"+self.openssl_client_proxy_part
 
-        openssl_cmd_getcert=" echo Q | openssl s_client -CAfile "+ self.ca_file + " -connect "+ self.hostname +":"+str(self.port)+" -tlsextdebug"
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
 
@@ -221,7 +228,7 @@ class Server:
 
     def test_truncated_hmac_extension(self):
     #Anforderung 2.5.4
-        openssl_cmd_getcert=" echo Q | openssl s_client -CAfile "+ self.ca_file +" -connect "+ self.hostname +":"+str(self.port)+" -tlsextdebug"
+        openssl_cmd_getcert=" echo Q | openssl s_client -CAfile "+ self.ca_file +" -connect "+ self.hostname +":"+str(self.port)+" -tlsextdebug" + self.openssl_client_proxy_part
         proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = proc.communicate()
 
@@ -238,7 +245,8 @@ class Server:
         logger.info("------------------------------------------------------------------------------------")
         try:
             if server_certificates is None:
-                openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ self.hostname +":"+str(self.port)+ " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
+                
+                openssl_cmd_getcert="echo 'Q' | openssl s_client -connect "+ self.hostname +":"+str(self.port)+ self.openssl_client_proxy_part + " -showcerts  | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'"
                 proc = subprocess.Popen([openssl_cmd_getcert], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                 (out, err) = proc.communicate()
                 tmp_certs = pem.parse(out)
@@ -255,3 +263,22 @@ class Server:
 
         except Exception as err:
             print err
+            
+    def __connect_ssl_socket(self,context):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        if self.proxy is None:
+            ssl_sock = context.wrap_socket(s, server_hostname=self.hostname)
+            ssl_sock.connect((self.hostname, self.port))
+        else:
+            try:
+                s.connect(self.proxy)
+            except socket.error, e:
+                logger.error ( "Unable to connect to " + self.proxy[0]+":" + str(self.proxy[1]) + " " + str(e))
+                exit(-1)
+            s.send("CONNECT %s:%s HTTP/1.0\n\n" % (self.hostname, self.port))
+            s.recv(1024)
+            # logger.info ("Proxy response: " + string.strip(s.recv(1024)))
+            ssl_sock = context.wrap_socket(s, server_hostname=self.hostname)
+        return ssl_sock
+        
