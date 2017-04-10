@@ -19,7 +19,13 @@ def main(hostname, port, ca_file, server_certificates, proxy):
     if server_certificates is None and proxy is not None:                       
         if ssl.OPENSSL_VERSION_NUMBER < 9999999999: # TODO: ab welcher version von openssl wird --proxy unterstuetz
             logger.error('Your version of OpenSSL does not support proxy setting. Please install OpenSSL x.x.x or later or try --servercertificates argument.')
-            exit(1)    
+            exit(1)
+    
+    if ca_file is None:
+        logger.info("No dedicated ca_file provided. Using default vaule.")
+        ca_file = ssl.get_default_verify_paths(). openssl_cafile;
+    
+    logger.info("Using the follwing ca_file: "+ca_file)
 
     if which('sslyze')==None:
         logger.error('Could not find sslyze in the path. Please install sslyze and add it to the path. The call this script again. Will exit now.')
@@ -50,7 +56,6 @@ def split_proxy(proxy, default_port=80):
     return p[0], int(p[1])
 
 if __name__ == "__main__":
-#TODO: Die globale Variable ist ein bisschen unschön
     parser=argparse.ArgumentParser(description='Test a TLS server for compliance with TR 3116-4')
     parser.add_argument(dest='server', metavar='S', nargs=1, help='The server that should be tested')
     parser.add_argument(dest='port', metavar='P', nargs=1, help='The TLS port that the server speaks')
@@ -61,15 +66,4 @@ if __name__ == "__main__":
     args=parser.parse_args()
     arguments=vars(args)
 
-    global ca_file
-
-    if args.cafile is None:
-        logger.info("No dedicated ca_file provided. Using default vaule.")
-        ca_file="/usr/local/etc/openssl/cert.pem"
-    else:
-        ca_file=args.cafile
-
-
-    logger.info("Using the follwing ca_file: "+ca_file)
-
-    main(arguments['server'][0],int(arguments['port'][0]),ca_file, args.certs, args.proxy)
+    main(arguments['server'][0],int(arguments['port'][0]),args.cafile, args.certs, args.proxy)
