@@ -44,10 +44,7 @@ class Server:
       self.hostname = hostname
       self.port=port
       self.proxy=proxy
-      if ca_file is not None:
-          self.ca_file=ca_file
-      else:
-          self.ca_file="/usr/local/etc/openssl/cert.pem"
+      self.ca_file=ca_file
 
       self.certificates= certificates
       self.protocols=[
