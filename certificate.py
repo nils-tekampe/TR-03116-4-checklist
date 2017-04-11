@@ -148,10 +148,10 @@ class Certificate:
             name_extension=self.cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
             logger.info("Das Zertifikat hat eine AlternativeName Extension")
 
-            if re.search(r"\*+",str(name_extension))==None:
+            if re.search(r"\*+",str(name_extension))is not None:
                 logger.error("Die AlternativeName-Extension enthält mindestens ein *. Das ist nicht OK")
             else:
-                logger.error("Die AlternativeName-Extension enthält keine Wildcards. Das ist  OK")
+                logger.info("Die AlternativeName-Extension enthält keine Wildcards. Das ist  OK")
 
         except Exception as err:
             logger.error("Es existiert keine AlternativeName-Extension")
