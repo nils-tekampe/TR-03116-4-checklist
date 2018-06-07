@@ -13,7 +13,7 @@ Das Skript checklist.py überprüft einen TLS-Server auf Konformität zu den Vor
 * SSLyze (muss im Pfad liegen)
 * Unter OSX sollte https://github.com/raggi/openssl-osx-ca installiert sein
 
-##Dateien
+## Dateien
 Folgende Dateien liegen in diesem Repository:
 
 | Datei             | Inhalt                                                                                                                 |
@@ -26,7 +26,7 @@ Folgende Dateien liegen in diesem Repository:
 | server.py         | In dieser Datei sind alle Prüfungen implementiert, die das TLS-Protokoll selbst betreffen                              |
 | testuebersicht.md | Übersicht über alle Kriterien der Checkliste und ihre Abdeckung                                                        |
 
-##Anwendung
+## Anwendung
 Der Aufruf erfolg mittels `python checklist.py servername port`
 Optional unterstützt das Skript die beiden folgenden Parameter:
 * --cafile Mit diesem Paramter kann eine Datei übergeben werden, in der die CAs (als PEM) abgespeichert sind, denen openssl vertraut.
@@ -35,8 +35,8 @@ Optional unterstützt das Skript die beiden folgenden Parameter:
 ##Abdeckung der Kriterien
 Eine Übersicht über die Kritierien der Checkliste und ihre Abdeckung ist in der Datei testuebersicht.md zu finden.
 
-##Disclaimmer
+## Disclaimmer
 **Der Code wurde grundlegend getestet aber aufgrund der Komplexität der Materie sollten die Ergebnisse des Skripts immer mit Vorsicht verwendet werden.**
 
-##Beiträge
+## Beiträge
 Fragen, Anmerkungen und Kommentare sind herzlich willkommen. Am Liebsten nehme ich natürlich Beiträge als Pull-Request.
